@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center">Silkard 26.2</h1>
+  <h1 align="center">Silkard 26.3</h1>
   <h3 align="center">Minecraft Fabric Hybrid server implementing the Spigot API</h3>
 
   <p align="center">
@@ -7,7 +7,7 @@
       <img alt="GitHub Stars" src="https://img.shields.io/github/stars/MohistMC/Silkard?logo=github&color=181717&style=flat-square">
     </a>
     <a href="https://fabricmc.net//">
-      <img alt="Fabric" src="https://img.shields.io/badge/Fabric-26.5-FF8B00?style=flat-square">
+      <img alt="Fabric" src="https://img.shields.io/badge/Fabric-26.3-FF8B00?style=flat-square">
     </a>
     <a href="https://www.azul.com/downloads/?version=java-25-lts#zulu">
       <img alt="JDK" src="https://img.shields.io/badge/JDK-25.0.1-007396?logo=java&logoColor=white&style=flat-square">
