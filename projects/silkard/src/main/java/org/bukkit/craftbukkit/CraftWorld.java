@@ -1293,7 +1293,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     @Override
     public boolean isBedWorks() {
-        return !world.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).explodes();
+        return !world.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).canSleep(world);
     }
 
     @Override

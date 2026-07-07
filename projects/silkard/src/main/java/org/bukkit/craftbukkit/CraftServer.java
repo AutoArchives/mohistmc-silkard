@@ -1101,7 +1101,7 @@ public final class CraftServer implements Server {
         RegistryAccess.Frozen registryaccess_frozen = worldloader_dataloadcontext.datapackDimensions();
         net.minecraft.core.Registry<LevelStem> registry = registryaccess_frozen.lookupOrThrow(Registries.LEVEL_STEM);
         if (dynamic != null) {
-            LevelDataAndDimensions leveldataanddimensions = LevelStorageSource.getLevelDataAndDimensions(worldSession, dynamic, worldloader_dataloadcontext.dataConfiguration(), registry, worldloader_dataloadcontext.datapackWorldgen());
+            LevelDataAndDimensions leveldataanddimensions = LevelStorageSource.getLevelDataAndDimensions(worldSession, dynamic, worldloader_dataloadcontext.dataConfiguration(), registry, worldloader_dataloadcontext.datapackWorldRegistries());
 
             dataAndSettings = leveldataanddimensions.worldDataAndGenSettings();
             registryaccess_frozen = leveldataanddimensions.dimensions().dimensionsRegistryAccess();
@@ -1113,10 +1113,10 @@ public final class CraftServer implements Server {
             DedicatedServerProperties.WorldDimensionData properties = new DedicatedServerProperties.WorldDimensionData(GsonHelper.parse((creator.generatorSettings().isEmpty()) ? "{}" : creator.generatorSettings()), creator.type().name().toLowerCase(Locale.ROOT));
 
             levelsettings = new LevelSettings(name, GameType.byId(getDefaultGameMode().getValue()), new LevelSettings.DifficultySettings(Difficulty.EASY, hardcore, false), false, worldloader_dataloadcontext.dataConfiguration());
-            worlddimensions = properties.create(worldloader_dataloadcontext.datapackWorldgen());
+            worlddimensions = properties.create(worldloader_dataloadcontext.datapackWorldRegistries());
 
             WorldDimensions.Complete worlddimensions_complete = worlddimensions.bake(registry);
-            Lifecycle lifecycle = worlddimensions_complete.lifecycle().add(worldloader_dataloadcontext.datapackWorldgen().allRegistriesLifecycle());
+            Lifecycle lifecycle = worlddimensions_complete.lifecycle().add(worldloader_dataloadcontext.datapackWorldRegistries().allRegistriesLifecycle());
 
             PrimaryLevelData primaryleveldata = new PrimaryLevelData(levelsettings, worlddimensions_complete.specialWorldProperty(), lifecycle);
             dataAndSettings = new LevelDataAndDimensions.WorldDataAndGenSettings(primaryleveldata, new WorldGenSettings(worldoptions, worlddimensions));
