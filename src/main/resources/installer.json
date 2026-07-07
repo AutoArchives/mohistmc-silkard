@@ -13,6 +13,6 @@
   "fabricExtra": {
     "org.jline:jline-reader:3.30.6": "a0919d426fb4db45c3d228eacea38fc696731b25",
     "org.fusesource.jansi:jansi:2.4.2": "ba7387c31622c6650b83edba1bbb115f1fe462ba",
-    "net.fabricmc.fabric-api:fabric-api:0.154.2+26.3": "0a232b3d6de77029a0337e69a6a724dc19b2a6cd"
+    "net.fabricmc.fabric-api:fabric-api:0.154.3+26.3": "9b917b7bfb8d9ff43a4f34262059c7a5fdfd6e23"
   }
 }
