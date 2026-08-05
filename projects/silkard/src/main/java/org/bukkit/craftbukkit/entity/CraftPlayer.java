@@ -107,6 +107,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.border.BorderChangeListener;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -829,13 +830,15 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
         Component[] components = CraftSign.sanitizeLines(lines);
         SignBlockEntity sign = new SignBlockEntity(CraftLocation.toBlockPosition(loc), Blocks.OAK_SIGN.defaultBlockState());
-        SignText text = sign.getFrontText();
-        text = text.setColor(net.minecraft.world.item.DyeColor.byId(dyeColor.getWoolData()));
-        text = text.setHasGlowingText(hasGlowingText);
+
+        SignTextSlot slot = sign.getSlotPlayerIsFacing(getHandle());
+        SignText.Mutable text = sign.getText(slot).asMutable();
+        text.setColor(net.minecraft.world.item.DyeColor.byId(dyeColor.getWoolData()));
+        text.setTextGlowing(hasGlowingText);
         for (int i = 0; i < components.length; i++) {
-            text = text.setMessage(i, components[i]);
+            text.setLine(i, components[i]);
         }
-        sign.setText(text, true);
+        sign.setText(text.asImmutable(), slot);
 
         getHandle().connection.send(new ClientboundBlockEntityDataPacket(sign.getBlockPos(), sign.getType(), sign.getUpdateTag(getHandle().registryAccess())));
     }

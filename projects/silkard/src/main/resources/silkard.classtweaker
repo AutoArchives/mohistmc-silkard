@@ -323,10 +323,10 @@ accessible method net/minecraft/world/level/block/DecoratedPotBlock getFluidStat
 accessible field net/minecraft/world/level/block/DropExperienceBlock xpRange Lnet/minecraft/util/valueproviders/IntProvider;
 accessible field net/minecraft/world/level/block/EyeblossomBlock type Lnet/minecraft/world/level/block/EyeblossomBlock$Type;
 accessible field net/minecraft/world/level/block/SculkCatalystBlock xpRange Lnet/minecraft/util/valueproviders/IntProvider;
-accessible field net/minecraft/world/entity/monster/skeleton/Skeleton conversionTime I
 accessible field net/minecraft/world/entity/monster/zombie/Zombie DATA_DROWNED_CONVERSION_ID Lnet/minecraft/network/syncher/EntityDataAccessor;
-accessible field net/minecraft/world/entity/monster/zombie/Zombie conversionTime I
-accessible method net/minecraft/world/entity/monster/zombie/Zombie startUnderWaterConversion (I)V
+accessible field net/minecraft/world/entity/monster/zombie/Zombie drowningTracker Lnet/minecraft/world/entity/ConversionTracker;
+accessible field net/minecraft/world/entity/monster/skeleton/Skeleton freezingTracker Lnet/minecraft/world/entity/ConversionTracker;
+accessible field net/minecraft/world/entity/ConversionTracker conversionTime I
 accessible field net/minecraft/world/entity/monster/zombie/ZombieVillager DATA_CONVERTING_ID Lnet/minecraft/network/syncher/EntityDataAccessor;
 accessible field net/minecraft/world/entity/monster/zombie/ZombieVillager conversionStarter Ljava/util/UUID;
 accessible method net/minecraft/world/entity/monster/zombie/ZombieVillager startConverting (Ljava/util/UUID;I)V
@@ -553,6 +553,7 @@ accessible field net/minecraft/world/level/storage/TagValueInput input Lnet/mine
 accessible field net/minecraft/world/scores/Objective displayName Lnet/minecraft/network/chat/Component;
 accessible field net/minecraft/world/scores/criteria/ObjectiveCriteria CRITERIA_CACHE Ljava/util/Map;
 accessible method net/minecraft/server/level/TicketType register (Ljava/lang/String;JI)Lnet/minecraft/server/level/TicketType;
+accessible class net/minecraft/core/component/Removed
 accessible field net/minecraft/core/component/DataComponentPatch map Lit/unimi/dsi/fastutil/objects/Reference2ObjectMap;
 accessible field net/minecraft/core/component/DataComponentPatch$Builder map Lit/unimi/dsi/fastutil/objects/Reference2ObjectMap;
 accessible method net/minecraft/server/commands/ReloadCommand discoverNewPacks (Lnet/minecraft/server/packs/repository/PackRepository;Lnet/minecraft/world/level/storage/WorldData;Ljava/util/Collection;)Ljava/util/Collection;
@@ -564,6 +565,7 @@ accessible field net/minecraft/world/level/levelgen/structure/StructurePiece SHA
 accessible method net/minecraft/world/level/block/entity/LecternBlockEntity onBookItemRemove ()V
 accessible class net/minecraft/world/entity/ai/gossip/GossipContainer$EntityGossips
 accessible method net/minecraft/world/entity/item/FallingBlockEntity <init> (Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/level/block/state/BlockState;)V
+accessible field net/minecraft/world/entity/Entity invulnerableTime I
 
 accessible field net/minecraft/network/protocol/handshake/ClientIntentionPacket hostName Ljava/lang/String;
 mutable field net/minecraft/network/protocol/handshake/ClientIntentionPacket hostName Ljava/lang/String;

@@ -278,7 +278,6 @@
     "vanilla.world.item.MixinFireworkRocketItem",
     "vanilla.world.item.MixinMinecartItem",
     "vanilla.world.item.MixinMobBucketItem",
-    "vanilla.world.item.MixinSignItem",
     "vanilla.world.item.MixinSpawnEggItem",
     "vanilla.world.level.block.MixinDaylightDetectorBlock",
     "vanilla.world.level.block.entity.MixinBellBlockEntity",

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PotionContents.class)
 public class MixinPotionContents {
 
-    @Inject(method = "<init>", at = @At("RETURN"))
+    @Inject(method = "<init>*", at = @At("RETURN"))
     private void silkard_init(CallbackInfo ci) {
         // CraftBukkit
     }

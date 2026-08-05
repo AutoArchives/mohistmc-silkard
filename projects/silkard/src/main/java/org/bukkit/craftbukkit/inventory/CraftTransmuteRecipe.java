@@ -33,7 +33,7 @@ public class CraftTransmuteRecipe extends TransmuteRecipe implements CraftRecipe
                                 toNMS(this.getInput(), true),
                                 toNMS(this.getMaterial(), true),
                                 MinMaxBounds.Ints.between(this.getMinimumMaterialCount(), this.getMaximumMaterialCount()),
-                                CraftItemStack.asNMSTemplate(this.getResult()),
+                                net.minecraft.world.item.crafting.TransmuteResult.fromTemplate(CraftItemStack.asNMSTemplate(this.getResult())),
                                 this.isAddMaterialCountToResult()
                         )
                 )

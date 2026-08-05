@@ -40,6 +40,7 @@ import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownLinge
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownSplashPotion;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.waypoints.Waypoint;
 import net.minecraft.world.waypoints.WaypointStyleAssets;
@@ -721,14 +722,14 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     public void swingMainHand() {
         Preconditions.checkState(!getHandle().silkard_generation(), "Cannot swing hand during world generation");
 
-        getHandle().swing(InteractionHand.MAIN_HAND, true);
+        getHandle().swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
     }
 
     @Override
     public void swingOffHand() {
         Preconditions.checkState(!getHandle().silkard_generation(), "Cannot swing hand during world generation");
 
-        getHandle().swing(InteractionHand.OFF_HAND, true);
+        getHandle().swing(InteractionHand.OFF_HAND, SwingAnimation.DEFAULT, true);
     }
 
     @Override

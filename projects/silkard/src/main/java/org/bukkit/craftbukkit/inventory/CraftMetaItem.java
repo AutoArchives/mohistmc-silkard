@@ -44,6 +44,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.Removed;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -270,7 +271,7 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
     @Specific(Specific.To.NBT)
     static final ItemMetaKeyType<UseEffects> USE_EFFECTS = new ItemMetaKeyType<>(DataComponents.USE_EFFECTS, "use-effects");
     @Specific(Specific.To.NBT)
-    static final ItemMetaKeyType<SwingAnimation> SWING_ANIMATION = new ItemMetaKeyType<>(DataComponents.SWING_ANIMATION, "swing-animation");
+    static final ItemMetaKeyType<SwingAnimation> SWING_ANIMATION = new ItemMetaKeyType<>(DataComponents.ATTACK_ANIMATION, "swing-animation");
     @Specific(Specific.To.NBT)
     static final ItemMetaKeyType<AttackRange> ATTACK_RANGE = new ItemMetaKeyType<>(DataComponents.ATTACK_RANGE, "attack-range");
     @Specific(Specific.To.NBT)
@@ -600,15 +601,14 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
             }
         });
 
-        Set<Map.Entry<DataComponentType<?>, Optional<?>>> keys = tag.entrySet();
-        for (Map.Entry<DataComponentType<?>, Optional<?>> key : keys) {
+        for (Map.Entry<DataComponentType<?>, Object> key : tag.map.entrySet()) {
             if (!getHandledTags().contains(key.getKey())) {
-                key.getValue().ifPresent((value) -> {
-                    unhandledTags.set((DataComponentType) key.getKey(), value);
-                });
+                if (!Removed.isRemoved(key.getValue())) {
+                    unhandledTags.set((DataComponentType) key.getKey(), key.getValue());
+                }
             }
 
-            if (key.getValue().isEmpty()) {
+            if (Removed.isRemoved(key.getValue())) {
                 removedTags.add(key.getKey());
             }
         }
@@ -899,9 +899,9 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
                 DataComponentPatch unhandledPatch = DataComponentPatch.CODEC.parse(BukkitUtils.getDefaultRegistryAccess().createSerializationContext(NbtOps.INSTANCE), unhandledTag).result().get();
                 this.unhandledTags.copy(unhandledPatch);
 
-                for (Entry<DataComponentType<?>, Optional<?>> entry : unhandledPatch.entrySet()) {
+                for (Map.Entry<DataComponentType<?>, Object> entry : unhandledPatch.map.entrySet()) {
                     // Move removed unhandled tags to dedicated removedTags
-                    if (!entry.getValue().isPresent()) {
+                    if (Removed.isRemoved(entry.getValue())) {
                         DataComponentType<?> key = entry.getKey();
 
                         this.unhandledTags.clear(key);
@@ -1206,10 +1206,10 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
             itemTag.put(MINIMUM_ATTACK_CHARGE, minimumAttackCharge);
         }
 
-        for (Map.Entry<DataComponentType<?>, Optional<?>> e : unhandledTags.build().entrySet()) {
-            e.getValue().ifPresent((value) -> {
-                itemTag.builder.set((DataComponentType) e.getKey(), value);
-            });
+        for (Map.Entry<DataComponentType<?>, Object> e : unhandledTags.build().map.entrySet()) {
+            if (!Removed.isRemoved(e.getValue())) {
+                itemTag.builder.set((DataComponentType) e.getKey(), e.getValue());
+            }
         }
 
         for (DataComponentType<?> removed : removedTags) {
@@ -2120,13 +2120,13 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
         net.minecraft.core.Registry<DataComponentType<?>> componentTypeRegistry = registryAccess.lookupOrThrow(Registries.DATA_COMPONENT_TYPE);
 
         StringJoiner componentString = new StringJoiner(",", "[", "]");
-        for (Entry<DataComponentType<?>, Optional<?>> entry : patch.entrySet()) {
+        for (Map.Entry<DataComponentType<?>, Object> entry : patch.map.entrySet()) {
             DataComponentType<?> componentType = entry.getKey();
-            Optional<?> componentValue = entry.getValue();
+            Object componentValue = entry.getValue();
             String componentKey = componentTypeRegistry.getResourceKey(componentType).orElseThrow().identifier().toString();
 
-            if (componentValue.isPresent()) {
-                net.minecraft.nbt.Tag componentValueAsNBT = (net.minecraft.nbt.Tag) ((DataComponentType) componentType).codecOrThrow().encodeStart(ops, componentValue.get()).getOrThrow();
+            if (!Removed.isRemoved(componentValue)) {
+                net.minecraft.nbt.Tag componentValueAsNBT = (net.minecraft.nbt.Tag) ((DataComponentType) componentType).codecOrThrow().encodeStart(ops, componentValue).getOrThrow();
                 String componentValueAsNBTString = new SnbtPrinterTagVisitor("", 0, new ArrayList<>()).visit(componentValueAsNBT);
                 componentString.add(componentKey + "=" + componentValueAsNBTString);
             } else {
@@ -2802,7 +2802,6 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
                         CraftMetaEntityTag.ENTITY_TAG.TYPE,
                         CraftMetaLeatherArmor.COLOR.TYPE,
                         CraftMetaMap.MAP_POST_PROCESSING.TYPE,
-                        CraftMetaMap.MAP_COLOR.TYPE,
                         CraftMetaMap.MAP_ID.TYPE,
                         CraftMetaPotion.POTION_CONTENTS.TYPE,
                         CraftMetaPotion.POTION_DURATION_SCALE.TYPE,

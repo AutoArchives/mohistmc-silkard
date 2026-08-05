@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ExplosionCondition.class)
 public class MixinExplosionCondition {
 
-    @Inject(method = "test", at = @At("HEAD"))
+    @Inject(method = "test*", at = @At("HEAD"))
     private void silkard_test(CallbackInfo ci) {
         // CraftBukkit
     }

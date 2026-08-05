@@ -7,7 +7,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SignItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ShelfBlock;
@@ -231,7 +230,7 @@ public final class CraftItemMetas {
         if (itemType == ItemType.FURNACE || itemType == ItemType.CHEST
                 || itemType == ItemType.TRAPPED_CHEST || itemType == ItemType.JUKEBOX
                 || itemType == ItemType.DISPENSER || itemType == ItemType.DROPPER
-                || itemHandle instanceof SignItem || itemType == ItemType.SPAWNER
+                || itemType == ItemType.SPAWNER
                 || itemType == ItemType.BREWING_STAND || itemType == ItemType.ENCHANTING_TABLE
                 || itemType == ItemType.COMMAND_BLOCK || itemType == ItemType.REPEATING_COMMAND_BLOCK
                 || itemType == ItemType.CHAIN_COMMAND_BLOCK || itemType == ItemType.BEACON

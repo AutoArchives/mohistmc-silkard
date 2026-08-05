@@ -22,7 +22,7 @@ public class CraftItemFlag {
     private static final Collection<DataComponentType<?>> HIDE_ADDITIONAL_TOOLTIP = Arrays.asList(
             DataComponents.POTION_CONTENTS, DataComponents.WRITABLE_BOOK_CONTENT, DataComponents.WRITTEN_BOOK_CONTENT,
             DataComponents.FIREWORKS, DataComponents.FIREWORK_EXPLOSION,
-            DataComponents.MAP_COLOR, DataComponents.MAP_DECORATIONS, DataComponents.MAP_ID, DataComponents.MAP_POST_PROCESSING,
+            DataComponents.MAP_DECORATIONS, DataComponents.MAP_ID, DataComponents.MAP_POST_PROCESSING,
             DataComponents.BANNER_PATTERNS,
             DataComponents.STORED_ENCHANTMENTS
     );

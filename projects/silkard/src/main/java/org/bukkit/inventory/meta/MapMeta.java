@@ -137,33 +137,6 @@ public interface MapMeta extends ItemMeta {
     @Deprecated(since = "1.19.4")
     void setLocationName(@Nullable String name);
 
-    /**
-     * Checks for existence of a map color.
-     *
-     * @return true if this has a custom map color
-     */
-    boolean hasColor();
-
-    /**
-     * Gets the map color that is set. A custom map color will alter the display
-     * of the map in an inventory slot.
-     * <p>
-     * Plugins should check that hasColor() returns <code>true</code> before
-     * calling this method.
-     *
-     * @return the map color that is set
-     */
-    @Nullable
-    Color getColor();
-
-    /**
-     * Sets the map color. A custom map color will alter the display of the map
-     * in an inventory slot.
-     *
-     * @param color the color to set
-     */
-    void setColor(@Nullable Color color);
-
     @Override
     @NotNull
     MapMeta clone();

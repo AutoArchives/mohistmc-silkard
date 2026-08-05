@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(EntitySelector.class)
 public class MixinEntitySelector {
 
-    @Redirect(method = "getCollisionPredicate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isPushable()Z"))
+    @Redirect(method = "pushableBy", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isPushable()Z"))
     private static boolean silkard_canCollideWith(Entity entity1, Entity entity) {
         return entity1.canCollideWithBukkit(entity) && entity.canCollideWithBukkit(entity1);
     }

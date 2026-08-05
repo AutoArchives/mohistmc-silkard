@@ -170,7 +170,7 @@ public class CraftItemType<M extends ItemMeta> extends CraftRegistryItem<Item> i
 
     @Override
     public boolean isFuel() {
-        return BukkitUtils.getServer().fuelValues().isFuel(new net.minecraft.world.item.ItemStack(getHandle()));
+        return getHandle().components().has(DataComponents.COOKING_FUEL);
     }
 
     @Override

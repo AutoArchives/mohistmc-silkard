@@ -702,7 +702,7 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
 
     @Override
     public void setInvulnerable(boolean flag) {
-        getHandle().setInvulnerable(flag);
+        getHandle().setPermanentlyInvulnerable(flag);
     }
 
     @Override

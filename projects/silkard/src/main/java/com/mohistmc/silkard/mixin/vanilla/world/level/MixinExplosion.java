@@ -10,31 +10,6 @@ import org.spongepowered.asm.mixin.Unique;
  * @date 2026/6/8
  */
 @Mixin(Explosion.class)
-public class MixinExplosion implements ContextExplosion {
+public interface MixinExplosion extends ContextExplosion {
 
-    @Unique
-    public float yield;
-
-    @Unique
-    public boolean wasCanceled;
-
-    @Override
-    public float silkard$getYield() {
-        return yield;
-    }
-
-    @Override
-    public void silkard$setYield(float yield) {
-        this.yield = yield;
-    }
-
-    @Override
-    public boolean silkard$wasCanceled() {
-        return wasCanceled;
-    }
-
-    @Override
-    public void silkard$wasCanceled(boolean wasCanceled) {
-        this.wasCanceled = wasCanceled;
-    }
 }
