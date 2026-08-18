@@ -59,20 +59,6 @@ public interface AdvancementDisplay {
     boolean isHidden();
 
     /**
-     * The X position of the advancement in the advancement screen.
-     *
-     * @return the X coordinate as float
-     */
-    float getX();
-
-    /**
-     * The Y position of the advancement in the advancement screen.
-     *
-     * @return the Y coordinate as float
-     */
-    float getY();
-
-    /**
      * The display type of this advancement.
      *
      * @return an enum representing the type.

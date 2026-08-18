@@ -4,8 +4,10 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.MapCodec;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -28,6 +30,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.WorldGenerationContext;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -126,17 +129,17 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
     }
 
     @Override
-    public void buildSurface(WorldGenRegion worldgenregion, StructureManager structuremanager, RandomState randomstate, ChunkAccess chunkaccess) {
+    public void buildSurface(StructureManager structureManager, RandomState randomState, ChunkAccess protoChunk, BiomeManager biomeManager, Blender blender, Set<Holder<net.minecraft.world.level.biome.Biome>> possibleBiomes) {
         WorldgenRandom random = getSeededRandom();
-        int x = chunkaccess.getPos().x();
-        int z = chunkaccess.getPos().z();
+        int x = protoChunk.getPos().x();
+        int z = protoChunk.getPos().z();
 
-        random.setSeed(Mth.getSeed(x, "should-surface".hashCode(), z) ^ worldgenregion.getSeed());
+        random.setSeed(Mth.getSeed(x, "should-surface".hashCode(), z) ^ world.getSeed());
         if (generator.shouldGenerateSurface(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
-            delegate.buildSurface(worldgenregion, structuremanager, randomstate, chunkaccess);
+            delegate.buildSurface(structureManager, randomState, protoChunk, biomeManager, blender, possibleBiomes);
         }
 
-        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkaccess);
+        CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), protoChunk);
 
         random.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
         generator.generateSurface(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
@@ -162,7 +165,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
         this.random.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
 
         // Get default biome data for chunk
-        CustomBiomeGrid biomegrid = new CustomBiomeGrid(chunkaccess);
+        CustomBiomeGrid biomegrid = new CustomBiomeGrid(protoChunk);
 
         ChunkData data;
         try {
@@ -182,7 +185,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
         OldCraftChunkData craftData = (OldCraftChunkData) data;
         LevelChunkSection[] sections = craftData.getRawChunkData();
 
-        LevelChunkSection[] csect = chunkaccess.getSections();
+        LevelChunkSection[] csect = protoChunk.getSections();
         int scnt = Math.min(csect.length, sections.length);
 
         // Loop through returned sections
@@ -215,27 +218,27 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
 
                 if (block.hasBlockEntity()) {
                     BlockEntity tile = ((EntityBlock) block.getBlock()).newBlockEntity(new BlockPos((x << 4) + tx, ty, (z << 4) + tz), block);
-                    chunkaccess.setBlockEntity(tile);
+                    protoChunk.setBlockEntity(tile);
                 }
             }
         }
     }
 
     @Override
-    public void applyCarvers(WorldGenRegion worldgenregion, long seed, RandomState randomstate, BiomeManager biomemanager, StructureManager structuremanager, ChunkAccess chunkaccess, CarvingMask.@Nullable Filter filter) {
+    public void applyCarvers(WorldGenRegion worldgenregion, RandomState randomstate, BiomeManager biomemanager, StructureManager structuremanager, ChunkAccess chunkaccess, Blender blender) {
         WorldgenRandom random = getSeededRandom();
         int x = chunkaccess.getPos().x();
         int z = chunkaccess.getPos().z();
 
         random.setSeed(Mth.getSeed(x, "should-caves".hashCode(), z) ^ worldgenregion.getSeed());
         if (generator.shouldGenerateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z)) {
-            delegate.applyCarvers(worldgenregion, seed, randomstate, biomemanager, structuremanager, chunkaccess, filter);
+            delegate.applyCarvers(worldgenregion, randomstate, biomemanager, structuremanager, chunkaccess, blender);
         }
 
         // Minecraft removed the LIQUID_CARVERS stage from world generation, without removing the LIQUID Carving enum.
         // Meaning this method is only called once for each chunk, so no check is required.
         CraftChunkData chunkData = new CraftChunkData(this.world.getWorld(), chunkaccess);
-        random.setDecorationSeed(seed, 0, 0);
+        random.setDecorationSeed(worldgenregion.getSeed(), 0, 0);
 
         generator.generateCaves(this.world.getWorld(), new RandomSourceWrapper.RandomWrapper(random), x, z, chunkData);
         chunkData.breakLink();

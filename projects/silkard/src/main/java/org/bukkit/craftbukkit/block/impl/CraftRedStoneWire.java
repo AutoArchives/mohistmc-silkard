@@ -15,10 +15,10 @@ public final class CraftRedStoneWire extends org.bukkit.craftbukkit.block.data.C
 
     // org.bukkit.craftbukkit.block.data.type.CraftRedstoneWire
 
-    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> NORTH = getEnum(net.minecraft.world.level.block.RedStoneWireBlock.class, "north", org.bukkit.block.data.type.RedstoneWire.Connection.class);
-    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> EAST = getEnum(net.minecraft.world.level.block.RedStoneWireBlock.class, "east", org.bukkit.block.data.type.RedstoneWire.Connection.class);
-    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> SOUTH = getEnum(net.minecraft.world.level.block.RedStoneWireBlock.class, "south", org.bukkit.block.data.type.RedstoneWire.Connection.class);
-    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> WEST = getEnum(net.minecraft.world.level.block.RedStoneWireBlock.class, "west", org.bukkit.block.data.type.RedstoneWire.Connection.class);
+    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> NORTH = getEnum(net.minecraft.world.level.block.RedstoneWireBlock.class, "north", org.bukkit.block.data.type.RedstoneWire.Connection.class);
+    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> EAST = getEnum(net.minecraft.world.level.block.RedstoneWireBlock.class, "east", org.bukkit.block.data.type.RedstoneWire.Connection.class);
+    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> SOUTH = getEnum(net.minecraft.world.level.block.RedstoneWireBlock.class, "south", org.bukkit.block.data.type.RedstoneWire.Connection.class);
+    private static final org.bukkit.craftbukkit.block.data.CraftBlockStateEnum<?, org.bukkit.block.data.type.RedstoneWire.Connection> WEST = getEnum(net.minecraft.world.level.block.RedstoneWireBlock.class, "west", org.bukkit.block.data.type.RedstoneWire.Connection.class);
 
     @Override
     public org.bukkit.block.data.type.RedstoneWire.Connection getFace(org.bukkit.block.BlockFace face) {
@@ -63,7 +63,7 @@ public final class CraftRedStoneWire extends org.bukkit.craftbukkit.block.data.C
 
     // org.bukkit.craftbukkit.block.data.CraftAnaloguePowerable
 
-    private static final net.minecraft.world.level.block.state.properties.IntegerProperty POWER = getInteger(net.minecraft.world.level.block.RedStoneWireBlock.class, "power");
+    private static final net.minecraft.world.level.block.state.properties.IntegerProperty POWER = getInteger(net.minecraft.world.level.block.RedstoneWireBlock.class, "power");
 
     @Override
     public int getPower() {

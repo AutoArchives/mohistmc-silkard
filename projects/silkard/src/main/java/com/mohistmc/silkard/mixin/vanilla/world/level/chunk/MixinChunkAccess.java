@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.chunk;
 
 import com.mohistmc.silkard.injected.world.level.chunk.ContextChunkAccess;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
@@ -10,6 +11,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.BiomeResolver;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.LightChunk;
@@ -24,7 +26,7 @@ import org.spongepowered.asm.mixin.Shadow;
  * @date 2026/4/2 17:24
  */
 @Mixin(ChunkAccess.class)
-public abstract class MixinChunkAccess implements BlockGetter, BiomeManager.NoiseBiomeSource, LightChunk, StructureAccess, ContextChunkAccess {
+public abstract class MixinChunkAccess implements LightChunk, StructureAccess, BiomeResolver, AttachmentTarget, ContextChunkAccess {
 
     @Shadow
     @Final

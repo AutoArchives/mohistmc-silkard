@@ -290,8 +290,8 @@ accessible method net/minecraft/world/entity/monster/Creeper explodeCreeper ()V
 accessible field net/minecraft/world/entity/monster/Creeper explosionRadius I
 accessible field net/minecraft/world/entity/monster/Creeper maxSwell I
 accessible field net/minecraft/world/entity/monster/Creeper swell I
-accessible method net/minecraft/world/entity/monster/EnderMan teleport ()Z
-accessible method net/minecraft/world/entity/monster/EnderMan teleportTowards (Lnet/minecraft/world/entity/Entity;)Z
+accessible method net/minecraft/world/entity/monster/Enderman teleport ()Z
+accessible method net/minecraft/world/entity/monster/Enderman teleportTowards (Lnet/minecraft/world/entity/Entity;)Z
 accessible field net/minecraft/world/entity/monster/Guardian$GuardianAttackGoal attackTime I
 accessible field net/minecraft/world/entity/monster/Guardian randomStrollGoal Lnet/minecraft/world/entity/ai/goal/RandomStrollGoal;
 accessible method net/minecraft/world/entity/monster/Guardian setActiveAttackTarget (I)V
