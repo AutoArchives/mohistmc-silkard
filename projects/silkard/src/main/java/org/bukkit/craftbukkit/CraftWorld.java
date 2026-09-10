@@ -66,6 +66,7 @@ import net.minecraft.world.level.chunk.ImposterProtoChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelResource;
@@ -1932,9 +1933,9 @@ public class CraftWorld extends CraftRegionAccessor implements World {
             holders.add(CraftBiome.bukkitToMinecraftHolder(biome));
         }
 
-        Climate.Sampler sampler = getHandle().getChunkSource().randomState().sampler();
+        RandomState randomState = getHandle().getChunkSource().randomState();
         // The given predicate is evaluated once at the start of the search, so performance isn't a large concern.
-        Pair<BlockPos, Holder<net.minecraft.world.level.biome.Biome>> found = getHandle().getChunkSource().getGenerator().getBiomeSource().findClosestBiome3d(originPos, radius, horizontalInterval, verticalInterval, holders::contains, sampler, getHandle());
+        Pair<BlockPos, Holder<net.minecraft.world.level.biome.Biome>> found = getHandle().getChunkSource().getGenerator().getBiomeSource().findClosestBiome3d(originPos, radius, horizontalInterval, verticalInterval, holders::contains, randomState, getHandle());
         if (found == null) {
             return null;
         }
@@ -1980,7 +1981,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     private List<GeneratedStructure> getStructures(int x, int z, Predicate<net.minecraft.world.level.levelgen.structure.Structure> predicate) {
         List<GeneratedStructure> structures = new ArrayList<>();
-        for (StructureStart start : getHandle().structureManager().startsForStructure(new ChunkPos(x, z), predicate)) {
+        for (StructureStart start : getHandle().structureManager().startsForStructure(x, z, predicate)) {
             structures.add(new CraftGeneratedStructure(start));
         }
 

@@ -27,7 +27,7 @@ public class CraftConsumableTeleportRandomly extends CraftConsumableEffect<Telep
 
         Float diameter = SerializableMeta.getObject(Float.class, map, "diameter", false);
 
-        this.handle = new TeleportRandomlyConsumeEffect(diameter);
+        this.handle = new TeleportRandomlyConsumeEffect(diameter, true);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class CraftConsumableTeleportRandomly extends CraftConsumableEffect<Telep
 
     @Override
     public void setDiameter(float diameter) {
-        handle = new TeleportRandomlyConsumeEffect(diameter);
+        handle = new TeleportRandomlyConsumeEffect(diameter, true);
     }
 
     @NotNull

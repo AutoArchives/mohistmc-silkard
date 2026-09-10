@@ -1,6 +1,6 @@
 {
   "installer": {
-    "minecraft": "26.3-snapshot-9",
+    "minecraft": "26.3-rc-1",
     "fabricLoader": "0.19.3",
     "fabricLoaderHash": "354dfaa02d0552e11867f85dff7cdbfaf813ba3e"
   },
@@ -13,6 +13,6 @@
   "fabricExtra": {
     "org.jline:jline-reader:3.30.6": "a0919d426fb4db45c3d228eacea38fc696731b25",
     "org.fusesource.jansi:jansi:2.4.2": "ba7387c31622c6650b83edba1bbb115f1fe462ba",
-    "net.fabricmc.fabric-api:fabric-api:0.157.2+26.3": "256994ce4153a1b02ce5c26478a2d8bae88c0aa9"
+    "net.fabricmc.fabric-api:fabric-api:0.160.3+26.3": "8a8744b8bba955917bc33df055c9265528982899"
   }
 }

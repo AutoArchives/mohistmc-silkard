@@ -335,7 +335,7 @@ public final class CraftServer implements Server {
             }
         }));
         this.serverVersion = CraftServer.class.getPackage().getImplementationVersion();
-        this.structureManager = new CraftStructureManager(console.getStructureManager(), console.registryAccess());
+        this.structureManager = new CraftStructureManager(console.getStructureTemplateManager(), console.registryAccess());
         this.dataPackManager = new CraftDataPackManager(this.getServer().getPackRepository());
         this.serverTickManager = new CraftServerTickManager(console.tickRateManager());
         this.serverLinks = new CraftServerLinks(console);
