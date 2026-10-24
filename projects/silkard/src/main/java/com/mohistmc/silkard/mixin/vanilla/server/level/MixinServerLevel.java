@@ -94,4 +94,41 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     public LevelStorageSource.LevelStorageAccess silkard_storageSource() {
        return storageSource;
     }
+
+    // CraftBukkit start
+    public org.bukkit.generator.ChunkGenerator generator;
+    public org.bukkit.generator.BiomeProvider biomeProvider;
+    public org.bukkit.World.Environment environment;
+
+    @Override
+    public org.bukkit.generator.ChunkGenerator silkard$generator() {
+        return this.generator;
+    }
+
+    @Override
+    public org.bukkit.generator.BiomeProvider silkard$biomeProvider() {
+        return this.biomeProvider;
+    }
+
+    @Override
+    public void silkard$setGenerator(org.bukkit.generator.ChunkGenerator gen, org.bukkit.generator.BiomeProvider provider) {
+        this.generator = gen;
+        this.biomeProvider = provider;
+    }
+
+    @Override
+    public org.bukkit.World.Environment silkard$environment() {
+        return this.environment == null ? org.bukkit.World.Environment.NORMAL : this.environment;
+    }
+
+    @Override
+    public void silkard$setEnvironment(org.bukkit.World.Environment env) {
+        this.environment = env;
+    }
+    // CraftBukkit end
+
+    @Override
+    public void silkard_tickEntityManager() {
+        this.entityManager.tick(); // SPIGOT-6526
+    }
 }

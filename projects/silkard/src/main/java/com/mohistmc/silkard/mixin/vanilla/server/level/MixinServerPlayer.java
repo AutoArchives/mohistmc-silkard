@@ -10,6 +10,18 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.event.player.PlayerSpawnChangeEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import com.mohistmc.silkard.injected.world.level.portal.ContextTeleportTransition;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.level.portal.TeleportTransition;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.util.CraftLocation;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * @author Mgazul
@@ -71,4 +83,26 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     public void silkard$displayName(String displayName) {
         this.displayName = displayName;
     }
+
+    // CraftBukkit start
+    @Inject(method = "teleport", at = @At("HEAD"), cancellable = true)
+    private void silkard$playerTeleportEvent(TeleportTransition transition, CallbackInfoReturnable<ServerPlayer> cir) {
+        if (this.isSleeping()) {
+            cir.setReturnValue(null); // CraftBukkit - SPIGOT-3154: can't teleport while sleeping
+            return;
+        }
+
+        ServerLevel newLevel = transition.newLevel();
+        PositionMoveRotation absolutePosition = PositionMoveRotation.calculateAbsolute(PositionMoveRotation.of((ServerPlayer) (Object) this), PositionMoveRotation.of(transition), transition.relatives());
+        Location enter = this.getBukkitEntity().getLocation();
+        Location exit = CraftLocation.toBukkit(absolutePosition.position(), ((com.mohistmc.silkard.injected.world.level.ContextLevel) newLevel).getWorld(), absolutePosition.yRot(), absolutePosition.xRot());
+        PlayerTeleportEvent tpEvent = new PlayerTeleportEvent(this.getBukkitEntity(), enter, exit, ((ContextTeleportTransition) (Object) transition).silkard$cause());
+        Bukkit.getServer().getPluginManager().callEvent(tpEvent);
+
+        if (tpEvent.isCancelled() || tpEvent.getTo() == null) {
+            cir.setReturnValue(null);
+        }
+        // 插件修改目标位置（tpEvent.getTo() != exit 时重建 transition）待传送链后续补齐
+    }
+    // CraftBukkit end
 }

@@ -6,8 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * @author Mgazul
@@ -130,11 +134,68 @@ public abstract class MixinEntity implements ContextEntity {
 
     @Override
     public boolean silkard_persistentInvisibility() {
-       return persistentInvisibility;
+        return persistentInvisibility;
     }
 
     @Override
     public void silkard_persistentInvisibility(boolean persistentInvisibility) {
         this.persistentInvisibility = persistentInvisibility;
     }
+
+    // CraftBukkit start
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - delegate to cause overload
+     */
+    @Overwrite
+    public boolean teleportTo(net.minecraft.server.level.ServerLevel level, double x, double y, double z, java.util.Set<net.minecraft.world.entity.Relative> relatives, float newYRot, float newXRot, boolean resetCamera) {
+        return this.teleportTo(level, x, y, z, relatives, newYRot, newXRot, resetCamera, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.UNKNOWN);
+    }
+
+    @Override
+    public boolean teleportTo(net.minecraft.server.level.ServerLevel level, double x, double y, double z, java.util.Set<net.minecraft.world.entity.Relative> relatives, float newYRot, float newXRot, boolean resetCamera, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause) {
+        net.minecraft.world.level.portal.TeleportTransition transition = new net.minecraft.world.level.portal.TeleportTransition(level, new net.minecraft.world.phys.Vec3(x, y, z), net.minecraft.world.phys.Vec3.ZERO, newYRot, newXRot, relatives, net.minecraft.world.level.portal.TeleportTransition.DO_NOTHING);
+        ((com.mohistmc.silkard.injected.world.level.portal.ContextTeleportTransition) (Object) transition).silkard$cause(cause);
+        return this.teleport(transition) != null;
+    }
+
+    @Shadow
+    public abstract Entity teleport(net.minecraft.world.level.portal.TeleportTransition transition);
+
+    @Shadow
+    private Entity teleportSameDimension(net.minecraft.server.level.ServerLevel level, net.minecraft.world.level.portal.TeleportTransition transition) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    private Entity teleportCrossDimension(net.minecraft.server.level.ServerLevel oldLevel, net.minecraft.server.level.ServerLevel newLevel, net.minecraft.world.level.portal.TeleportTransition transition) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    public abstract void stopRiding();
+
+    @Shadow
+    public abstract boolean isRemoved();
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - EntityTeleportEvent
+     */
+    @Inject(method = "teleport", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;stopRiding()V"), cancellable = true)
+    private void silkard$entityTeleportEvent(net.minecraft.world.level.portal.TeleportTransition transition, CallbackInfoReturnable<Entity> cir) {
+        if (this.level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            // CraftBukkit start
+            net.minecraft.world.entity.PositionMoveRotation absolutePosition = net.minecraft.world.entity.PositionMoveRotation.calculateAbsolute(net.minecraft.world.entity.PositionMoveRotation.of((Entity) (Object) this), net.minecraft.world.entity.PositionMoveRotation.of(transition), transition.relatives());
+            org.bukkit.Location to = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(absolutePosition.position(), ((com.mohistmc.silkard.injected.world.level.ContextLevel) transition.newLevel()).getWorld(), absolutePosition.yRot(), absolutePosition.xRot());
+            org.bukkit.event.entity.EntityTeleportEvent teleEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityTeleportEvent((Entity) (Object) this, to);
+            if (teleEvent.isCancelled()) {
+                cir.setReturnValue(null);
+                return;
+            }
+            // 目标修正（teleEvent.getTo() 与 to 不同时重建 transition）待跨维度簇一并处理
+            // CraftBukkit end
+        }
+    }
+    // CraftBukkit end
 }

@@ -17,6 +17,19 @@ import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.core.LayeredRegistryAccess;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
+import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.RegistryLayer;
+import net.minecraft.stats.ServerRecipeBook;
+import net.minecraft.tags.TagNetworkSerialization;
+import net.minecraft.world.item.crafting.RecipeManager;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
 
 /**
  * @author Mgazul
@@ -68,4 +81,46 @@ public abstract class MixinPlayerList implements ContextPlayerList {
             return path1;
         }
     }
+
+    // CraftBukkit start - split reloadResources so recipes can be re-sent after addRecipe
+    @Shadow
+    @Final
+    private List<ServerPlayer> players;
+
+    @Shadow
+    @Final
+    private Map<UUID, PlayerAdvancements> advancements;
+
+    @Shadow
+    @Final
+    private LayeredRegistryAccess<RegistryLayer> registries;
+
+    @Shadow
+    public abstract void broadcastAll(Packet<?> packet);
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - extract recipe resending into reloadRecipes
+     */
+    @Overwrite
+    public void reloadResources() {
+        for (PlayerAdvancements advancements : this.advancements.values()) {
+            advancements.reload(this.server.getAdvancements());
+        }
+
+        this.broadcastAll(new ClientboundUpdateTagsPacket(TagNetworkSerialization.serializeTagsToNetwork(this.registries)));
+        this.reloadRecipes();
+    }
+
+    @Override
+    public void reloadRecipes() {
+        RecipeManager recipemanager = this.server.getRecipeManager();
+        ClientboundUpdateRecipesPacket clientboundupdaterecipespacket = new ClientboundUpdateRecipesPacket(recipemanager.getSynchronizedItemProperties(), recipemanager.getSynchronizedStonecutterRecipes());
+
+        for (ServerPlayer player : this.players) {
+            player.connection.send(clientboundupdaterecipespacket);
+            player.getRecipeBook().sendInitialRecipeBook(player);
+        }
+    }
+    // CraftBukkit end
 }
