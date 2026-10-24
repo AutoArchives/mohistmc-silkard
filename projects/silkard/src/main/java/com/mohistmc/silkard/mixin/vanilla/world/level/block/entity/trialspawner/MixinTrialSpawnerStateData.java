@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(TrialSpawnerStateData.class)
 public class MixinTrialSpawnerStateData {
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "resetAfterBecomingOminous", at = @At("HEAD"))
     private void silkard_tick(CallbackInfo ci) {
         // CraftBukkit
     }

@@ -19,8 +19,13 @@ import org.spongepowered.asm.mixin.Shadow;
  * @author Mgazul
  * @date 2026/10/24
  */
+// defaultBlockState() 由 Block 声明（public final），@Shadow 命中不了继承成员 → extends Block
 @Mixin(DoorBlock.class)
-public class MixinDoorBlock {
+public abstract class MixinDoorBlock extends net.minecraft.world.level.block.Block {
+
+    protected MixinDoorBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties) {
+        super(properties);
+    }
 
     /**
      * @author Mgazul
@@ -60,8 +65,4 @@ public class MixinDoorBlock {
         throw new AssertionError();
     }
 
-    @org.spongepowered.asm.mixin.Shadow
-    protected BlockState defaultBlockState() {
-        throw new AssertionError();
-    }
 }

@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ShipwreckPieces.class)
 public class MixinShipwreckPieces {
 
-    @Inject(method = "addPiece", at = @At("HEAD"))
+    // CraftBukkit - setCraftLootTable 的调用点在嵌套 ShipwreckPiece 内，外层类无 addPiece
+    @Inject(method = "addRandomPiece", at = @At("HEAD"), require = 0)
     private void silkard_addPiece(CallbackInfo ci) {
-        // CraftBukkit
     }
 }

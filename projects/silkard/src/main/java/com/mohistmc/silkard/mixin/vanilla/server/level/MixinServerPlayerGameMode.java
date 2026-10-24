@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 /**
  * @author Mgazul
@@ -15,19 +15,20 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(ServerPlayerGameMode.class)
 public class MixinServerPlayerGameMode implements ContextServerPlayerGameMode {
 
-    @Shadow
+    // CB 自增字段，26.3 vanilla 无此成员
+    @Unique
     public boolean firedInteract;
 
-    @Shadow
+    @Unique
     public boolean interactResult;
 
-    @Shadow
+    @Unique
     public BlockPos interactPosition;
 
-    @Shadow
+    @Unique
     public InteractionHand interactHand;
 
-    @Shadow
+    @Unique
     public ItemStack interactItemStack;
 
     @Override

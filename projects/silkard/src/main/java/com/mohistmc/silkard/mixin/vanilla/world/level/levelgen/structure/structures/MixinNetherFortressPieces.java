@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(NetherFortressPieces.class)
 public class MixinNetherFortressPieces {
 
-    @Inject(method = "addPiece", at = @At("HEAD"))
+    // CraftBukkit - placeCraftSpawner 的调用点在嵌套 piece（CastleCorridorTBalconyPiece 等）内，外层类无 addPiece
+    @Inject(method = "findAndCreateBridgePieceFactory", at = @At("HEAD"), require = 0)
     private void silkard_addPiece(CallbackInfo ci) {
-        // CraftBukkit
     }
 }

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(DeathProtection.class)
 public class MixinDeathProtection {
 
-    @Inject(method = "apply", at = @At("HEAD"))
+    @Inject(method = "applyEffects", at = @At("HEAD"))
     private void silkard_apply(CallbackInfo ci) {
         // CraftBukkit
     }

@@ -4,7 +4,7 @@ import com.mohistmc.silkard.injected.network.chat.ContextTextColor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TextColor;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 /**
  * @author Mgazul
@@ -13,7 +13,8 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(TextColor.class)
 public class MixinTextColor implements ContextTextColor {
 
-    @Shadow
+    // CB 自增字段，26.3 vanilla 无此成员
+    @Unique
     public ChatFormatting format;
 
     @Override

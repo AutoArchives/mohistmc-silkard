@@ -13,8 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CommandBlockEntity.class)
 public class MixinCommandBlockEntity {
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void silkard_tick(CallbackInfo ci) {
-        // CraftBukkit
+    // CraftBukkit - getBukkitSender 覆盖点在匿名内部类 CommandBlockEntity$1（BaseCommandBlock 实现）内；
+    // 26.3 CommandBlockEntity 与 BlockEntity 均无 tick 方法，原 tick 锚点无效，require=0 保持可启动
+    @Inject(method = "getCommandBlock", at = @At("HEAD"), require = 0)
+    private void silkard$getCommandBlock(CallbackInfo ci) {
     }
 }

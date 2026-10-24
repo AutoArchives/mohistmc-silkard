@@ -5,6 +5,7 @@ import java.net.SocketAddress;
 import net.minecraft.network.Connection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 /**
  * @author Mgazul
@@ -13,8 +14,9 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(Connection.class)
 public abstract class MixinConnection implements ContextConnection {
 
-    @Shadow
-    public String hostname;
+    // CraftBukkit - add field (CB 自增字段，26.3 vanilla 无此成员，必须 @Unique 而非 @Shadow)
+    @Unique
+    public String hostname = "";
 
     @Shadow
     public abstract SocketAddress getRemoteAddress();

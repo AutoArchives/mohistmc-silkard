@@ -23,7 +23,7 @@ public abstract class MixinPlayerAdvancements {
     private ServerPlayer player;
 
     @Shadow
-    public abstract AdvancementProgress getOrStartProgress(AdvancementHolder holder);
+    public abstract AdvancementProgress getOrStartProgress(AdvancementHolder advancement);
 
     @Inject(method = "award", at = @At("HEAD"), cancellable = true)
     private void silkard$fireAdvancementCriterionGrantEvent(AdvancementHolder holder, String criterion, CallbackInfoReturnable<Boolean> cir) {

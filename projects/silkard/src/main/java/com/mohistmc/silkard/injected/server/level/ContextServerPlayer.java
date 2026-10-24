@@ -134,7 +134,7 @@ public interface ContextServerPlayer extends ContextPlayer {
         throw new ContextStateException("Not implemented");
     }
 
-    default void silkard$setSentListPacketsilkard$sentListPacket(boolean sentListPacket) {
+    default void silkard$setSentListPacket(boolean sentListPacket) {
         throw new ContextStateException("Not implemented");
     }
 

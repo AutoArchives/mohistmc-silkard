@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(Ghast.class)
 public class MixinGhast {
 
-    @Redirect(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/hurtingprojectile/LargeFireball;setPos(DDD)V"))
+    // 26.3 的 Ghast 不再声明 aiStep（只在 Mob），原 setPos 调用点待定位 → require=0 暂挂
+    @Redirect(method = "aiStep", require = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/hurtingprojectile/LargeFireball;setPos(DDD)V"))
     private void silkard$aiStep(LargeFireball instance, double x, double y, double z, Ghast ghast, Vec3 vec3) {
         float power = ghast.getExplosionPower();
         instance.explosionPower = (int) power;

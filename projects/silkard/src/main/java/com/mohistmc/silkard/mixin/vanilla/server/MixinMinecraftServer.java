@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.server;
 
 import com.mohistmc.silkard.bukkit.BukkitUtils;
+import com.mohistmc.silkard.bukkit.MainHook;
 import com.mohistmc.silkard.injected.server.ContextMinecraftServer;
 import io.izzel.arclight.mixin.TransformAccess;
 import joptsimple.OptionSet;
@@ -11,8 +12,13 @@ import net.minecraft.server.WorldLoader;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.CraftServer;
 import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import org.objectweb.asm.Opcodes;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Unique;
 import com.mohistmc.silkard.injected.server.level.ContextServerLevel;
 import com.mohistmc.silkard.injected.world.level.ContextLevel;
@@ -27,9 +33,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.Optional;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
+import net.minecraft.util.TimeUtil;
 import net.minecraft.util.Util;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.HolderLookup;
@@ -39,6 +47,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerProperties;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.progress.LevelLoadListener;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.util.datafix.DataFixers;
@@ -70,6 +79,7 @@ import net.minecraft.world.entity.npc.CatSpawner;
 import net.minecraft.world.entity.ai.village.VillageSiege;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTraderSpawner;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.scheduler.CraftScheduler;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.spongepowered.asm.mixin.Final;
@@ -82,7 +92,13 @@ import org.spongepowered.asm.mixin.Shadow;
  * @date 2026/4/2 15:15
  */
 @Mixin(MinecraftServer.class)
-public class MixinMinecraftServer implements ContextMinecraftServer {
+// runningTask() / runAllTasks() 由 ReentrantBlockableEventLoop / BlockableEventLoop 声明，
+// @Shadow 命中不了继承成员 → extends 直接父类后按 protected 继承取用。
+public abstract class MixinMinecraftServer extends net.minecraft.util.thread.ReentrantBlockableEventLoop<net.minecraft.server.TickTask> implements ContextMinecraftServer {
+
+    protected MixinMinecraftServer(String name, boolean propagatesCrashes) {
+        super(name, propagatesCrashes);
+    }
 
     private static final org.slf4j.Logger silkard$LOGGER = org.slf4j.LoggerFactory.getLogger(MixinMinecraftServer.class);
 
@@ -92,6 +108,11 @@ public class MixinMinecraftServer implements ContextMinecraftServer {
     public OptionSet options;
     public org.bukkit.command.ConsoleCommandSender console;
     public Terminal terminal;
+
+    @Override
+    public void silkard$setTerminal(Terminal terminal) {
+        this.terminal = terminal;
+    }
     public static int currentTick = (int) (System.currentTimeMillis() / 50);
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
     public int autosavePeriod;
@@ -99,8 +120,32 @@ public class MixinMinecraftServer implements ContextMinecraftServer {
     private boolean forceTicks;
     // CraftBukkit end
 
+    // CraftBukkit start
+    @Unique
+    private static boolean silkard$pluginsLoaded;
+
+    // 26.3 的 loadLevel() 只在 MinecraftServer 声明（DedicatedServer 不再覆盖），钩子落这里
+    // 并用 instanceof 限定只有 DedicatedServer 才走插件加载。
+    @Inject(method = "loadLevel", at = @At("HEAD"))
+    private void silkard$loadPlugins(CallbackInfo ci) {
+        if (!(((Object) this) instanceof net.minecraft.server.dedicated.DedicatedServer)) {
+            return;
+        }
+        // CraftBukkit 时序: setPlayerList → loadPlugins() → enablePlugins(STARTUP) → loadLevel
+        CraftServer craftServer = this.server;
+        if (craftServer != null && !silkard$pluginsLoaded) {
+            silkard$pluginsLoaded = true;
+            craftServer.loadPlugins();
+            craftServer.enablePlugins(org.bukkit.plugin.PluginLoadOrder.STARTUP);
+        }
+    }
+    // CraftBukkit end
+
     @Override
     public WorldLoader.DataLoadContext silkard_worldLoader() {
+        if (this.worldLoader == null) {
+            this.worldLoader = MainHook.worldLoader(); // CraftBukkit - from Main capture
+        }
         return worldLoader;
     }
 
@@ -155,6 +200,98 @@ public class MixinMinecraftServer implements ContextMinecraftServer {
     private static RegistryAccess getDefaultRegistryAccess() {
         return BukkitUtils.getDefaultRegistryAccess();
     }
+
+    @Shadow
+    @Final
+    private net.minecraft.network.PacketProcessor packetProcessor;
+
+    @Shadow
+    @Final
+    private net.minecraft.util.profiling.metrics.profiling.MetricsRecorder metricsRecorder;
+
+    @Shadow
+    private volatile boolean isSaving;
+
+
+    @Shadow
+    public boolean saveAllChunks(boolean silent, boolean flush, boolean force) {
+        throw new AssertionError();
+    }
+
+
+    @Shadow
+    public java.lang.Iterable<ServerLevel> getAllLevels() {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    @Final
+    private net.minecraft.server.network.ServerConnectionListener connection;
+
+    @Shadow
+    public net.minecraft.server.players.PlayerList playerList;
+
+    @Shadow
+    public net.minecraft.server.network.ServerConnectionListener getConnection() {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    public void cancelRecordingMetrics() {
+        throw new AssertionError();
+    }
+
+
+    @Shadow
+    public net.minecraft.server.ServerFunctionManager getFunctions() {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    @Final
+    private net.minecraft.server.ServerTickRateManager tickRateManager;
+
+    @Shadow
+    private int tickCount;
+
+    @Shadow
+    @Final
+    private java.util.List<Runnable> tickables;
+
+    @Shadow
+    @Final
+    private net.minecraft.util.debug.ServerDebugSubscribers debugSubscribers;
+
+    @Shadow
+    @Final
+    private net.minecraft.server.notifications.ServerActivityMonitor serverActivityMonitor;
+
+    @Shadow
+    protected void forceGameTimeSynchronization() {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    protected void tickConnection() {
+        throw new AssertionError();
+    }
+
+
+    @Shadow
+    public boolean saveEverything(boolean silent, boolean flush, boolean force) {
+        throw new AssertionError();
+    }
+
+    @Shadow
+    private int ticksUntilAutosave;
+
+    @Shadow
+    private boolean mayHaveDelayedTasks;
+
+    @Shadow
+    private long delayedTasksMaxNextTickTimeNanos;
+
+
     // ==================== CraftBukkit world lifecycle ====================
     // CraftBukkit start
     @Mutable
@@ -269,6 +406,10 @@ public class MixinMinecraftServer implements ContextMinecraftServer {
     // CraftBukkit end
 
 
+
+
+
+    // CraftBukkit - capture worldLoader (vanilla Main builds it; reconstruct from worldStem)
     // ==================== CraftBukkit world lifecycle ====================
     // CraftBukkit start
     @Override
@@ -534,4 +675,288 @@ public class MixinMinecraftServer implements ContextMinecraftServer {
         this.server.getPluginManager().callEvent(new ServerLoadEvent(ServerLoadEvent.LoadType.STARTUP));
     }
     // CraftBukkit end
+
+    // ==================== CraftBukkit runtime hooks ====================
+    // CraftBukkit start
+    @Unique
+    private boolean silkard$hasStopped;
+    @Unique
+    private AutoCloseable silkard$resources;
+
+
+    @Unique
+    private final Object silkard$stopLock = new Object();
+
+    @Override
+    public boolean hasStopped() {
+        synchronized (silkard$stopLock) {
+            return silkard$hasStopped;
+        }
+    }
+    // CraftBukkit end
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - prevent double stopping, disablePlugins, packet flush window
+     */
+    @Overwrite
+    protected void stopServer() {
+        // CraftBukkit start - prevent double stopping on multiple threads
+        synchronized (silkard$stopLock) {
+            if (silkard$hasStopped) return;
+            silkard$hasStopped = true;
+        }
+        // CraftBukkit end
+        this.packetProcessor.close();
+        if (this.metricsRecorder.isRecording()) {
+            this.cancelRecordingMetrics();
+        }
+
+        silkard$LOGGER.info("Stopping server");
+        // CraftBukkit start
+        if (this.server != null) {
+            this.server.disablePlugins();
+        }
+        // CraftBukkit end
+        this.getConnection().stop();
+        this.isSaving = true;
+        if (this.playerList != null) {
+            silkard$LOGGER.info("Saving players");
+            this.playerList.saveAll();
+            this.playerList.removeAll();
+            try { Thread.sleep(100); } catch (InterruptedException ex) {} // CraftBukkit - SPIGOT-625 - give server at least a chance to send packets
+        }
+
+        silkard$LOGGER.info("Saving worlds");
+
+        for (ServerLevel level : this.getAllLevels()) {
+            if (level != null) {
+                level.noSave = false;
+            }
+        }
+
+        while (this.levels.values().stream().anyMatch(l -> l.getChunkSource().chunkMap.hasWork())) {
+            this.nextTickTimeNanos = Util.getNanos() + TimeUtil.NANOSECONDS_PER_MILLISECOND;
+
+            for (ServerLevel level : this.getAllLevels()) {
+                level.getChunkSource().deactivateTicketsOnClosing();
+                level.getChunkSource().tick(() -> true, false);
+            }
+
+            this.waitUntilNextTick();
+        }
+
+        this.saveAllChunks(false, true, false);
+
+        for (ServerLevel level : this.getAllLevels()) {
+            if (level != null) {
+                try {
+                    level.close();
+                } catch (IOException e) {
+                    silkard$LOGGER.error("Exception closing the level", e);
+                }
+            }
+        }
+
+        this.isSaving = false;
+        // this.savedDataStorage.close(); // CraftBukkit - handled in ServerLevel#close
+        // CraftBukkit - resources.close() (private inner record implements AutoCloseable, accessed reflectively)
+        try {
+            java.lang.reflect.Field resourcesField = MinecraftServer.class.getDeclaredField("resources");
+            resourcesField.setAccessible(true);
+            ((AutoCloseable) resourcesField.get((MinecraftServer) (Object) this)).close();
+        } catch (Exception e) {
+            silkard$LOGGER.error("Failed to close resources", e);
+        }
+
+        try {
+            this.storageSource.close();
+        } catch (IOException e) {
+            silkard$LOGGER.error("Failed to unlock level {}", this.storageSource.getLevelId(), e);
+        }
+    }
+
+
+    // CraftBukkit start - tick hooks: scheduler heartbeat, processQueue, per-world clocks/time
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - scheduler heartbeat + processQueue + per-world clockManager/timeSync
+     */
+    @Overwrite
+    protected void tickChildren(final BooleanSupplier haveTime) {
+        net.minecraft.util.profiling.ProfilerFiller profilerfiller = net.minecraft.util.profiling.Profiler.get();
+
+        this.getPlayerList().getPlayers().forEach((serverplayer) -> {
+            serverplayer.connection.suspendFlushing();
+        });
+        this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
+        profilerfiller.push("commandFunctions");
+        this.getFunctions().tick();
+        profilerfiller.pop();
+        if (this.tickRateManager.runsNormally()) {
+            profilerfiller.push("clocks");
+            // CraftBukkit start - per-world clocks
+            for (ServerLevel serverlevel : this.getAllLevels()) {
+                serverlevel.clockManager().tick();
+            }
+            // CraftBukkit end
+            profilerfiller.pop();
+        }
+
+        if (this.tickCount % 20 == 0) {
+            profilerfiller.push("timeSync");
+            this.forceGameTimeSynchronization();
+            profilerfiller.pop();
+        }
+
+        profilerfiller.push("levels");
+        this.updateEffectiveRespawnData();
+
+        // CraftBukkit start - Run tasks that are waiting on processing
+        while (!processQueue.isEmpty()) {
+            processQueue.remove().run();
+        }
+        // CraftBukkit end
+
+        for (ServerLevel level : this.getAllLevels()) {
+            profilerfiller.push(() -> level + " " + level.dimension().identifier());
+            profilerfiller.push("tick");
+
+            try {
+                level.tick(haveTime);
+            } catch (Throwable t) {
+                CrashReport report = CrashReport.forThrowable(t, "Exception ticking world");
+                level.fillReportDetails(report);
+                throw new ReportedException(report);
+            }
+
+            profilerfiller.pop();
+            profilerfiller.pop();
+        }
+
+        profilerfiller.popPush("connection");
+        this.tickConnection();
+        profilerfiller.popPush("players");
+        this.playerList.tick();
+        profilerfiller.popPush("debugSubscribers");
+        this.debugSubscribers.tick();
+        if (this.tickRateManager.runsNormally()) {
+            profilerfiller.popPush("gameTests");
+            net.minecraft.gametest.framework.GameTestTicker.SINGLETON.tick();
+        }
+
+        profilerfiller.popPush("server gui refresh");
+
+        for (Runnable tickable : this.tickables) {
+            tickable.run();
+        }
+
+        profilerfiller.popPush("send chunks");
+
+        for (ServerPlayer player : this.playerList.getPlayers()) {
+            player.connection.chunkSender.sendNextChunks(player);
+            player.connection.resumeFlushing();
+        }
+
+        profilerfiller.pop();
+        this.serverActivityMonitor.tick();
+    }
+    // CraftBukkit end
+
+
+    // ==================== CraftBukkit tickServer / haveTime hooks ====================
+    // CraftBukkit start
+    @Unique
+    private boolean silkard$forceTicks;
+
+    @Override
+    public boolean silkard$forceTicks() {
+        return this.silkard$forceTicks;
+    }
+
+    @Override
+    public void silkard$forceTicks(boolean forceTicks) {
+        this.silkard$forceTicks = forceTicks;
+    }
+
+    @Override
+    public void executeModerately() {
+        this.runAllTasks();
+        java.util.concurrent.locks.LockSupport.parkNanos("executing tasks", 1000L);
+    }
+    // CraftBukkit end
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - forceTicks
+     */
+    @Overwrite
+    private boolean haveTime() {
+        // CraftBukkit start
+        return this.silkard$forceTicks || this.runningTask() || Util.getNanos() < (this.mayHaveDelayedTasks ? this.delayedTasksMaxNextTickTimeNanos : this.nextTickTimeNanos);
+        // CraftBukkit end
+    }
+
+    // CraftBukkit - currentTick per tick + scheduler heartbeat on empty + autosavePeriod
+    @Inject(method = "tickServer", at = @At("HEAD"))
+    private void silkard$currentTick(BooleanSupplier haveTime, CallbackInfo ci) {
+        currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - scheduler heartbeat when paused + autosavePeriod gate
+     */
+    @Overwrite
+    private void autoSave() {
+        this.ticksUntilAutosave = this.autosavePeriod; // CraftBukkit
+        silkard$LOGGER.debug("Autosave started");
+        net.minecraft.util.profiling.ProfilerFiller profilerfiller = net.minecraft.util.profiling.Profiler.get();
+        profilerfiller.push("save");
+        this.saveEverything(true, false, false);
+        profilerfiller.pop();
+        silkard$LOGGER.debug("Autosave finished");
+    }
+
+    // CraftBukkit - empty-server branch: heartbeat + tickConnection (vanilla tickServer 已含 tickConnection, 这里只补心跳)
+    @Inject(method = "tickServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;autoSave()V"))
+    private void silkard$emptyServerHeartbeat(BooleanSupplier haveTime, CallbackInfo ci) {
+        if (this.server != null) {
+            this.server.getScheduler().mainThreadHeartbeat(); // CraftBukkit
+        }
+    }
+
+
+    // CraftBukkit - ctor TAIL: options/worldLoader/vanillaCommandDispatcher/terminal/shutdown hook
+    // (CB MinecraftServer.patch ctor hunk 的等价；silkard 经 MixinMain 槽位或 silkard$configure 供值)
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void silkard$bukkitServerInit(Thread serverThread, net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess levelStorageSource, net.minecraft.server.packs.repository.PackRepository packRepository, net.minecraft.server.WorldStem worldStem, java.util.Optional<net.minecraft.world.level.gamerules.GameRules> gameRules, java.net.Proxy proxy, com.mojang.datafixers.DataFixer fixerUpper, net.minecraft.server.Services services, net.minecraft.server.level.progress.LevelLoadListener levelLoadListener, boolean propagatesCrashes, net.minecraft.server.notifications.NotificationManager notificationManager, CallbackInfo ci) {
+        // CraftBukkit start
+        this.options = MainHook.options(); // CraftBukkit - from Main capture
+        this.worldLoader = MainHook.worldLoader(); // CraftBukkit - from Main capture
+        if (worldStem != null) {
+            this.vanillaCommandDispatcher = worldStem.dataPackResources().getCommands(); // CraftBukkit
+        }
+        // Try to see if we're actually running in a terminal, disable jline if not
+        if (System.console() == null && System.getProperty(TerminalBuilder.PROP_PROVIDER) == null) {
+            System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
+            org.bukkit.craftbukkit.Main.useJline = false;
+        }
+
+        try {
+            this.terminal = TerminalBuilder.builder().dumb(false).build();
+        } catch (Throwable e) {
+            try {
+                // Try again with jline disabled for Windows users without C++ 2008 Redistributable
+                System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
+                org.bukkit.craftbukkit.Main.useJline = false;
+                this.terminal = TerminalBuilder.builder().build();
+            } catch (IOException ex) {
+                silkard$LOGGER.warn("Failed to build terminal", ex);
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(new org.bukkit.craftbukkit.util.ServerShutdownThread((MinecraftServer) (Object) this));
+        // CraftBukkit end
+    }
+
 }

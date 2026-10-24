@@ -1,7 +1,8 @@
 package com.mohistmc.silkard.mixin.vanilla.world.entity.ai.goal;
 
-import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RunAroundLikeCrazyGoal;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.craftbukkit.entity.CraftHumanEntity;
@@ -13,16 +14,12 @@ import org.spongepowered.asm.mixin.Shadow;
  * @author Mgazul
  * @date 2026/10/24
  */
+// adjustedTickDelay 由 Goal 声明，@Shadow 命中不了继承成员 → extends Goal 直接继承
 @Mixin(RunAroundLikeCrazyGoal.class)
-public class MixinRunAroundLikeCrazyGoal {
+public abstract class MixinRunAroundLikeCrazyGoal extends Goal {
 
     @Shadow
     private AbstractHorse horse;
-
-    @Shadow
-    protected int adjustedTickDelay(int delay) {
-        throw new AssertionError();
-    }
 
     /**
      * @author Mgazul

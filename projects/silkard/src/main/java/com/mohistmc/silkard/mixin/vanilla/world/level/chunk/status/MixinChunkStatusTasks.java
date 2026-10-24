@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ChunkStatusTasks.class)
 public class MixinChunkStatusTasks {
 
-    @Inject(method = "generate", at = @At("HEAD"))
+    @Inject(method = "generateStructureStarts", at = @At("HEAD"))
     private void silkard_generate(CallbackInfo ci) {
         // CraftBukkit
     }

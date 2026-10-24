@@ -73,11 +73,19 @@ public interface ContextMinecraftServer {
         throw new ContextStateException("Not implemented");
     }
 
+    default void silkard$setTerminal(Terminal terminal) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default Terminal terminal() {
         throw new ContextStateException("Not implemented");
     }
 
     default void silkard$setRemoteConsole(RemoteConsoleCommandSender remoteConsole) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default void silkard$forceTicks(boolean forceTicks) {
         throw new ContextStateException("Not implemented");
     }
 

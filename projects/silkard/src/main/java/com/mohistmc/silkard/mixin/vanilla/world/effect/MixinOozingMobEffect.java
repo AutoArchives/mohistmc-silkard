@@ -1,8 +1,9 @@
 package com.mohistmc.silkard.mixin.vanilla.world.effect;
 
-import net.minecraft.server.level.ServerLevel;
+import com.mohistmc.silkard.injected.world.level.ContextLevelWriter;
 import net.minecraft.world.effect.OozingMobEffect;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -14,8 +15,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(OozingMobEffect.class)
 public class MixinOozingMobEffect {
 
-    @Redirect(method = "applyEffectTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z"))
-    private boolean silkard_addFreshEntity(ServerLevel level, Entity entity) {
-        return level.addFreshEntity(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.POTION_EFFECT); // CraftBukkit
+    // 26.3 把溅出史莱姆的逻辑从 applyEffectTick 挪到 spawnSlimeOffspring（owner 已变成 Level）
+    @Redirect(method = "spawnSlimeOffspring", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z"))
+    private boolean silkard_addFreshEntity(Level level, Entity entity) {
+        return ((ContextLevelWriter) level).addFreshEntity(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.POTION_EFFECT); // CraftBukkit
     }
 }

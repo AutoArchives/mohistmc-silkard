@@ -62,6 +62,10 @@ public interface ContextPlayerList {
         throw new ContextStateException("Not implemented");
     }
 
+    default boolean disconnectAllPlayersWithProfile(java.util.UUID uuid, ServerPlayer player) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default void reloadRecipes() {
         throw new ContextStateException("Not implemented");
     }

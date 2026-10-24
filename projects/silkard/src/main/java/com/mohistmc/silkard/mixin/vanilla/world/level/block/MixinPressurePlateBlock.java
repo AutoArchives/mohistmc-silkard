@@ -22,8 +22,14 @@ import org.spongepowered.asm.mixin.Shadow;
  * @author Mgazul
  * @date 2026/10/24
  */
+// type 是 BasePressurePlateBlock 的 protected final 字段（26.3 没有 type() 方法）→ extends 继承
 @Mixin(PressurePlateBlock.class)
-public abstract class MixinPressurePlateBlock {
+public abstract class MixinPressurePlateBlock extends net.minecraft.world.level.block.BasePressurePlateBlock {
+
+    protected MixinPressurePlateBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties,
+                                      net.minecraft.world.level.block.state.properties.BlockSetType type) {
+        super(properties, type);
+    }
 
     @Shadow
     protected abstract int getSignalForState(BlockState state);
@@ -34,7 +40,7 @@ public abstract class MixinPressurePlateBlock {
      */
     @Overwrite
     protected int getSignalStrength(Level level, BlockPos pos) {
-        Class<? extends Entity> entityClass = switch (this.type().pressurePlateSensitivity()) {
+        Class<? extends Entity> entityClass = switch (this.type.pressurePlateSensitivity()) {
             case EVERYTHING -> Entity.class;
             case MOBS -> LivingEntity.class;
         };
@@ -65,9 +71,6 @@ public abstract class MixinPressurePlateBlock {
         return 0;
         // CraftBukkit end
     }
-
-    @org.spongepowered.asm.mixin.Shadow
-    protected abstract net.minecraft.world.level.block.state.properties.BlockSetType type();
 
     // 复制 BasePressurePlateBlock.TOUCH_AABB（protected 继承字段 shadow 不可靠）
     private static final AABB TOUCH_AABB = net.minecraft.world.level.block.Block.column(14.0, 0.0, 4.0).toAabbs().getFirst();

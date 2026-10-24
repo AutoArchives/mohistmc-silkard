@@ -559,6 +559,9 @@ accessible field net/minecraft/core/component/DataComponentPatch$Builder map Lit
 accessible method net/minecraft/server/commands/ReloadCommand discoverNewPacks (Lnet/minecraft/server/packs/repository/PackRepository;Lnet/minecraft/world/level/storage/WorldData;Ljava/util/Collection;)Ljava/util/Collection;
 accessible field net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings palette I
 accessible field net/minecraft/server/players/PlayerList LOGGER Lorg/slf4j/Logger;
+accessible field net/minecraft/server/players/PlayerList BAN_DATE_FORMAT Ljava/text/SimpleDateFormat;
+accessible method net/minecraft/server/players/PlayerList save (Lnet/minecraft/server/level/ServerPlayer;)V
+accessible method net/minecraft/server/players/PlayerList updateEntireScoreboard (Lnet/minecraft/server/ServerScoreboard;Lnet/minecraft/server/level/ServerPlayer;)V
 accessible method net/minecraft/world/level/block/entity/ConduitBlockEntity updateAndAttackTarget (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/ConduitBlockEntity;Z)V
 accessible method net/minecraft/world/level/block/entity/ConduitBlockEntity updateDestroyTarget (Lnet/minecraft/world/entity/EntityReference;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Z)Lnet/minecraft/world/entity/EntityReference;
 accessible field net/minecraft/world/level/levelgen/structure/StructurePiece SHAPE_CHECK_BLOCKS Ljava/util/Set;
@@ -767,3 +770,4 @@ transitive-inject-interface	net/minecraft/server/level/Ticket	com/mohistmc/silka
 transitive-inject-interface net/minecraft/world/level/gamerules/GameRules com/mohistmc/silkard/injected/world/level/gamerules/ContextGameRules
 
 transitive-extend-enum net/minecraft/world/level/Level$ExplosionInteraction STANDARD
+transitive-inject-interface	net/minecraft/server/dedicated/DedicatedServer	com/mohistmc/silkard/injected/server/ContextDedicatedServer

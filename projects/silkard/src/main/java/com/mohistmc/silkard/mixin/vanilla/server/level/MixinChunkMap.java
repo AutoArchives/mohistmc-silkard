@@ -10,4 +10,13 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(ChunkMap.class)
 public class MixinChunkMap implements ContextChunkMap {
+
+    // CraftBukkit start - recursion-safe executor for Chunk loadCallback() and unloadCallback()
+    public final com.mohistmc.silkard.bukkit.BukkitCallbackExecutor silkard$callbackExecutorField = new com.mohistmc.silkard.bukkit.BukkitCallbackExecutor();
+
+    @Override
+    public com.mohistmc.silkard.bukkit.BukkitCallbackExecutor silkard$callbackExecutor() {
+        return silkard$callbackExecutorField;
+    }
+    // CraftBukkit end
 }

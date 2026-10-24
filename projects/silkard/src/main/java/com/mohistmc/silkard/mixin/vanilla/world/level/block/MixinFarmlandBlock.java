@@ -67,7 +67,7 @@ public class MixinFarmlandBlock {
         }
         // CraftBukkit end
         if (canTrample && entity.getBbWidth() * entity.getBbWidth() * entity.getBbHeight() > 0.512F) {
-            this.turnToBaseBlock(entity, state, level, pos);
+            ((FarmlandBlock) (Object) this).turnToBaseBlock(entity, state, level, pos);
             // vanilla 的 turnToBaseBlock 已执行, 跳过 vanilla fallOn 剩余部分（仅 super 空实现）
             ci.cancel();
         }

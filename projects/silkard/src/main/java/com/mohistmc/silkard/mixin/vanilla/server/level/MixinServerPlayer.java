@@ -74,6 +74,26 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     }
 
     @Override
+    public boolean silkard$sentListPacket() {
+        return this.sentListPacket;
+    }
+
+    @Override
+    public void silkard$setSentListPacket(boolean sentListPacket) {
+        this.sentListPacket = sentListPacket;
+    }
+
+    @Override
+    public String silkard$kickLeaveMessage() {
+        return this.kickLeaveMessage;
+    }
+
+    @Override
+    public void silkard$setKickLeaveMessage(String kickLeaveMessage) {
+        this.kickLeaveMessage = kickLeaveMessage;
+    }
+
+    @Override
     public String silkard$displayName() {
 
         return displayName;

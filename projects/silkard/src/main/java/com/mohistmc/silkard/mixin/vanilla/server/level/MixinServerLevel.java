@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.RandomSequences;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.clock.ServerClockManager;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -33,6 +35,7 @@ public abstract class MixinServerLevel implements ContextServerLevel {
 
     // @formatter:off
     @Shadow @Final private ServerChunkCache chunkSource;
+    @Shadow @Final private PersistentEntitySectionManager<Entity> entityManager;
     @Shadow @Final public ServerLevelData serverLevelData;
     @Shadow public abstract WeatherData getWeatherData();
     // @formatter:on

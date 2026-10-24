@@ -2,11 +2,9 @@ package com.mohistmc.silkard.mixin.vanilla.world.inventory;
 
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import org.bukkit.craftbukkit.inventory.CraftInventoryCrafting;
 import org.bukkit.craftbukkit.inventory.CraftInventoryView;
 import org.jspecify.annotations.Nullable;
@@ -19,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// craftSlots / resultSlots 由 AbstractCraftingMenu 声明（protected），@Shadow 命中不了
+// 继承成员，改为直接 extends AbstractCraftingMenu 取值。
 @Mixin(InventoryMenu.class)
-public abstract class MixinInventoryMenu extends AbstractContainerMenu {
+public abstract class MixinInventoryMenu extends AbstractCraftingMenu {
 
-    @Shadow @Final public TransientCraftingContainer craftSlots;
-    @Shadow @Final public ResultContainer resultSlots;
     @Shadow @Final private Player owner;
 
     // CraftBukkit start
@@ -31,7 +29,7 @@ public abstract class MixinInventoryMenu extends AbstractContainerMenu {
     private CraftInventoryView bukkitEntity = null;
 
     protected MixinInventoryMenu(@Nullable MenuType<?> menuType, int containerId) {
-        super(menuType, containerId);
+        super(menuType, containerId, 0, 0);
     }
 
     @Override

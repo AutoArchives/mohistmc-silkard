@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemStackMapIdFix.class)
 public class MixinItemStackMapIdFix {
 
-    @Inject(method = "fixItemStack", at = @At("HEAD"))
+    @Inject(method = "lambda$makeRule$0", at = @At("HEAD"))
     private void silkard_fixItemStack(CallbackInfo ci) {
-        // CraftBukkit
+        // CraftBukkit - TODO 26.3: 仅在 map 不存在时才写入，需按 makeRule 的 OpticFinder 实参重写
     }
 }

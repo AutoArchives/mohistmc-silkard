@@ -1,7 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla;
 
 import net.minecraft.CrashReport;
-import net.minecraft.CrashReportCategory;
+import net.minecraft.SystemReport;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,7 +18,7 @@ public class MixinCrashReport {
 
     @Final
     @Shadow
-    private CrashReportCategory systemReport;
+    private SystemReport systemReport;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void silkard_initCraftBukkit(String title, Throwable t, CallbackInfo ci) {

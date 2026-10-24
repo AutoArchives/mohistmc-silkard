@@ -16,8 +16,13 @@ import org.spongepowered.asm.mixin.Overwrite;
  * @author Mgazul
  * @date 2026/10/24
  */
+// defaultBlockState() 由 Block 声明（public final），@Shadow 命中不了继承成员 → extends Block
 @Mixin(ChorusFlowerBlock.class)
-public class MixinChorusFlowerBlock {
+public abstract class MixinChorusFlowerBlock extends net.minecraft.world.level.block.Block {
+
+    protected MixinChorusFlowerBlock(net.minecraft.world.level.block.state.BlockBehaviour.Properties properties) {
+        super(properties);
+    }
 
     /**
      * @author Mgazul
@@ -107,11 +112,6 @@ public class MixinChorusFlowerBlock {
     @org.spongepowered.asm.mixin.Shadow
     @org.spongepowered.asm.mixin.Final
     private net.minecraft.world.level.block.Block plant;
-
-    @org.spongepowered.asm.mixin.Shadow
-    protected BlockState defaultBlockState() {
-        throw new AssertionError();
-    }
 
     @org.spongepowered.asm.mixin.Shadow
     private void placeGrownFlower(Level level, BlockPos pos, int age) {

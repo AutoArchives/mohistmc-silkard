@@ -199,7 +199,10 @@ public class Main {
                 }
 
                 System.out.println("Loading libraries, please wait...");
-                //net.minecraft.server.Main.main(options);
+                // CraftBukkit start - silkard: hand OptionSet over to MainHook, then start vanilla Main
+                com.mohistmc.silkard.bukkit.MainHook.configure(options);
+                net.minecraft.server.Main.main(new String[0]);
+                // CraftBukkit end
             } catch (Throwable t) {
                 t.printStackTrace();
             }

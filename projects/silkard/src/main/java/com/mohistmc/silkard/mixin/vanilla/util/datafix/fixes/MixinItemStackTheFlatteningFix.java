@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemStackTheFlatteningFix.class)
 public class MixinItemStackTheFlatteningFix {
 
-    @Inject(method = "fixItemStack", at = @At("HEAD"))
+    @Inject(method = "lambda$makeRule$0", at = @At("HEAD"))
     private void silkard_fixItemStack(CallbackInfo ci) {
-        // CraftBukkit
+        // CraftBukkit - TODO 26.3: 仅当 i != 0 时才写 Damage，需按 makeRule 的 OpticFinder 实参重写
     }
 }

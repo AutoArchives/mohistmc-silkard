@@ -21,7 +21,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinInteractWithDoor {
 
     // CraftBukkit start - entities opening doors
-    @Redirect(method = "lambda$static$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/DoorBlock;setOpen(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Z)V"))
+    // 26.3: CB 的 lambda$static$0 已改名为 lambda$create$2（declarative BehaviorBuilder 重构），setOpen 调用点不变
+    @Redirect(method = "lambda$create$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/DoorBlock;setOpen(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Z)V"))
     private static void silkard$openDoorEvent(DoorBlock door, net.minecraft.world.entity.Entity entity, Level level, BlockState state, BlockPos pos, boolean open, @Local(argsOnly = true) LivingEntity body) {
         if (entity != null && !entity.is(body)) {
             door.setOpen(entity, level, state, pos, open);

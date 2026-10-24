@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(SummonCommand.class)
 public class MixinSummonCommand {
 
-    @Redirect(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tryAddFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)Z"))
+    @Redirect(method = "createEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tryAddFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)Z"))
     private static boolean silkard_tryAddFreshEntityWithPassengers(ServerLevel level, Entity entity) {
         return level.tryAddFreshEntityWithPassengers(entity, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.COMMAND); // CraftBukkit - pass a spawn reason of "COMMAND"
     }

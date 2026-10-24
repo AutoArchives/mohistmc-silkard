@@ -10,6 +10,7 @@ import com.mojang.brigadier.tree.RootCommandNode;
 import com.mohistmc.silkard.injected.commands.ContextCommands;
 import com.mohistmc.silkard.injected.server.ContextMinecraftServer;
 import com.mohistmc.silkard.injected.server.level.ContextServerLevel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
@@ -228,12 +229,14 @@ public abstract class MixinCommands implements ContextCommands {
         PlayerCommandSendEvent event = new PlayerCommandSendEvent(player.getBukkitEntity(), new LinkedHashSet<>(bukkit));
         event.getPlayer().getServer().getPluginManager().callEvent(event);
 
-        // Remove labels that were removed during the event
-        for (String orig : bukkit) {
-            if (!event.getCommands().contains(orig)) {
-                rootcommandnode.removeCommand(orig);
+        // Remove labels that were removed during the event; brigadier has no removeCommand, rebuild root instead
+        RootCommandNode<CommandSourceStack> filteredRoot = new RootCommandNode<>();
+        for (CommandNode<CommandSourceStack> node : new ArrayList<>(rootcommandnode.getChildren())) {
+            if (event.getCommands().contains(node.getName())) {
+                filteredRoot.addChild(node);
             }
         }
+        rootcommandnode = filteredRoot;
         // CraftBukkit end
         player.connection.send(new ClientboundCommandsPacket(rootcommandnode, COMMAND_NODE_INSPECTOR));
     }

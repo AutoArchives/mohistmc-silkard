@@ -9,5 +9,5 @@ import org.spongepowered.asm.mixin.Mixin;
  * @date 2026/6/8
  */
 @Mixin(ReputationEventType.class)
-public class MixinReputationEventType implements ContextReputationEventType {
+public interface MixinReputationEventType extends ContextReputationEventType {
 }

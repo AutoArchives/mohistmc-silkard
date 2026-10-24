@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(GameRuleCommand.class)
 public class MixinGameRuleCommand {
 
-    @Redirect(method = "setGameRule", at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/CommandSourceStack;getServer()Lnet/minecraft/server/MinecraftServer;"))
+    @Redirect(method = "setRule", at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/CommandSourceStack;getServer()Lnet/minecraft/server/MinecraftServer;"))
     private static CommandSourceStack silkard_getLevel(CommandSourceStack stack) {
         return stack; // CraftBukkit - pass level instead of server
     }
