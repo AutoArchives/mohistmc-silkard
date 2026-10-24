@@ -171,6 +171,7 @@ import org.bukkit.craftbukkit.generator.CraftWorldInfo;
 import org.bukkit.craftbukkit.generator.OldCraftChunkData;
 import org.bukkit.craftbukkit.help.SimpleHelpMap;
 import org.bukkit.craftbukkit.inventory.CraftBlastingRecipe;
+import org.bukkit.craftbukkit.inventory.CraftBrewingRecipe;
 import org.bukkit.craftbukkit.inventory.CraftCampfireRecipe;
 import org.bukkit.craftbukkit.inventory.CraftDyeRecipe;
 import org.bukkit.craftbukkit.inventory.CraftFurnaceRecipe;
@@ -232,6 +233,7 @@ import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.WorldInfo;
 import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.BlastingRecipe;
+import org.bukkit.inventory.BrewingRecipe;
 import org.bukkit.inventory.CampfireRecipe;
 import org.bukkit.inventory.ComplexRecipe;
 import org.bukkit.inventory.DyeRecipe;
@@ -1314,6 +1316,8 @@ public final class CraftServer implements Server {
                 toAdd = CraftDyeRecipe.fromBukkitRecipe((DyeRecipe) recipe);
             } else if (recipe instanceof ImbueRecipe) {
                 toAdd = CraftImbueRecipe.fromBukkitRecipe((ImbueRecipe) recipe);
+            } else if (recipe instanceof BrewingRecipe) {
+                toAdd = CraftBrewingRecipe.fromBukkitRecipe((BrewingRecipe) recipe);
             } else if (recipe instanceof ComplexRecipe) {
                 throw new UnsupportedOperationException("Cannot add custom complex recipe");
             } else {

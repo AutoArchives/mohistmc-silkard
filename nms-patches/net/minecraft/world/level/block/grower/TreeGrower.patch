@@ -67,7 +67,7 @@
  
              if (holder != null) {
                  FeatureConfiguration featureconfiguration = ((ConfiguredFeature) holder.value()).config();
-@@ -181,11 +189,66 @@
+@@ -181,11 +189,72 @@
          }
      }
  
@@ -120,6 +120,12 @@
 +            SaplingBlock.treeType = TreeType.PALE_OAK;
 +        } else if (worldgentreeabstract == TreeFeatures.PALE_OAK_CREAKING) {
 +            SaplingBlock.treeType = TreeType.PALE_OAK_CREAKING;
++        } else if (worldgentreeabstract == TreeFeatures.RED_POPLAR) {
++            SaplingBlock.treeType = TreeType.RED_POPLAR;
++        } else if (worldgentreeabstract == TreeFeatures.ORANGE_POPLAR) {
++            SaplingBlock.treeType = TreeType.ORANGE_POPLAR;
++        } else if (worldgentreeabstract == TreeFeatures.YELLOW_POPLAR) {
++            SaplingBlock.treeType = TreeType.YELLOW_POPLAR;
 +        } else {
 +            throw new IllegalArgumentException("Unknown tree generator " + worldgentreeabstract);
 +        }

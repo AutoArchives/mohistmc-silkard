@@ -204,7 +204,23 @@ public final class CraftItemMetas {
                 || itemType == ItemType.LINGERING_POTION || itemType == ItemType.TIPPED_ARROW) {
             return asType(POTION_META_DATA);
         }
-        if (itemType == ItemType.FILLED_MAP) {
+        if (itemType == ItemType.FILLED_MAP
+                || itemType == ItemType.OCEAN_MONUMENT_MAP
+                || itemType == ItemType.WOODLAND_MANSION_MAP
+                || itemType == ItemType.BURIED_TRIAL_CHAMBERS_MAP
+                || itemType == ItemType.JUNGLE_PYRAMID_MAP
+                || itemType == ItemType.SWAMP_HUT_MAP
+                || itemType == ItemType.DESERT_VILLAGE_MAP
+                || itemType == ItemType.PLAINS_VILLAGE_MAP
+                || itemType == ItemType.SAVANNA_VILLAGE_MAP
+                || itemType == ItemType.SNOWY_VILLAGE_MAP
+                || itemType == ItemType.TAIGA_VILLAGE_MAP
+                || itemType == ItemType.BURIED_TREASURE_MAP
+                || itemType == ItemType.BURIED_ANCIENT_CITY_MAP
+                || itemType == ItemType.BURIED_MINESHAFT_MAP
+                || itemType == ItemType.DESERT_PYRAMID_MAP
+                || itemType == ItemType.ABANDONED_CAMP_MAP
+                || itemType == ItemType.WARM_OCEAN_RUINS_MAP) {
             return asType(MAP_META_DATA);
         }
         if (itemType == ItemType.FIREWORK_ROCKET) {

@@ -32,9 +32,10 @@
      private @Nullable RconThread rconThread;
      public DedicatedServerSettings settings;
      private @Nullable MinecraftServerGui gui;
-@@ -98,10 +114,12 @@
+@@ -98,10 +114,13 @@
      private @Nullable ManagementServer jsonRpcServer;
      private long lastHeartbeat;
++    protected Thread consoleThread; // CraftBukkit
  
 -    public DedicatedServer(Thread serverThread, LevelStorageSource.LevelStorageAccess levelStorageSource, PackRepository packRepository, WorldStem worldStem, Optional<GameRules> gameRules, DedicatedServerSettings settings, DataFixer fixerUpper, Services services) {
 -        super(serverThread, levelStorageSource, packRepository, worldStem, gameRules, Proxy.NO_PROXY, fixerUpper, services, LoggingLevelLoadListener.forDedicatedServer(), true);
@@ -48,7 +49,7 @@
          this.serverTextFilter = ServerTextFilter.createFromConfig(settings.getProperties());
          this.serverLinks = createServerLinks(settings);
          if (settings.getProperties().codeOfConduct) {
-@@ -143,7 +161,7 @@
+@@ -143,7 +162,7 @@
                      }
                  }
  
@@ -57,7 +58,7 @@
              } catch (IOException ioexception1) {
                  throw new IllegalArgumentException("Failed to read Code of Conduct folder", ioexception1);
              }
-@@ -190,27 +208,86 @@
+@@ -190,27 +209,88 @@
              }
          }
  
@@ -143,12 +144,14 @@
 +
 +        System.setOut(IoBuilder.forLogger(logger).setLevel(Level.INFO).buildPrintStream());
 +        System.setErr(IoBuilder.forLogger(logger).setLevel(Level.WARN).buildPrintStream());
++
++        this.consoleThread = thread;
 +        // CraftBukkit end
 +
          thread.setDaemon(true);
          thread.setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(DedicatedServer.LOGGER));
          thread.start();
-@@ -230,7 +307,7 @@
+@@ -230,7 +310,7 @@
              this.setLocalIp(dedicatedserverproperties.serverIp);
          }
  
@@ -157,7 +160,7 @@
          DedicatedServer.LOGGER.info("Default game type: {}", dedicatedserverproperties.gameMode.get());
          InetAddress inetaddress = null;
  
-@@ -254,6 +331,12 @@
+@@ -254,6 +334,12 @@
              return false;
          }
  
@@ -170,7 +173,7 @@
          if (!this.usesAuthentication()) {
              DedicatedServer.LOGGER.warn("**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!");
              DedicatedServer.LOGGER.warn("The server will make no attempt to authenticate usernames. Beware.");
-@@ -268,19 +351,19 @@
+@@ -268,19 +354,19 @@
          if (!OldUsersConverter.areOldUserlistsRemoved()) {
              return false;
          } else {
@@ -193,7 +196,7 @@
              }
  
              if (dedicatedserverproperties.enableQuery) {
-@@ -484,6 +567,7 @@
+@@ -484,6 +570,7 @@
              }
          }
  
@@ -201,7 +204,7 @@
      }
  
      @Override
-@@ -500,7 +584,15 @@
+@@ -500,7 +587,15 @@
          while (!this.consoleInput.isEmpty()) {
              ConsoleInput consoleinput = (ConsoleInput) this.consoleInput.remove(0);
  
@@ -218,7 +221,7 @@
          }
  
      }
-@@ -777,16 +869,52 @@
+@@ -777,16 +872,52 @@
  
      @Override
      public String getPluginNames() {
@@ -275,7 +278,24 @@
      }
  
      @Override
-@@ -934,4 +1062,15 @@
+@@ -793,5 +924,16 @@
+         super.stopServer();
+         Util.shutdownExecutors();
++        // CraftBukkit start
++        Thread consoleThread = this.consoleThread;
++        if (consoleThread != null) {
++            consoleThread.interrupt();
++            try {
++                consoleThread.join(50L);
++            } catch (InterruptedException ex) {
++                Thread.currentThread().interrupt();
++            }
++        }
++        // CraftBukkit end
+     }
+
+     @Override
+@@ -934,4 +1076,15 @@
      public Map<String, String> getCodeOfConducts() {
          return this.codeOfConductTexts;
      }

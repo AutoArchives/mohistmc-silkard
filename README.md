@@ -28,9 +28,9 @@
 - Optimized performance and stability for modded environments
 
 ✅ **Core Integration**
-- [x] Bukkit API ([282dad0e](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/commits/282dad0e))
-- [x] CraftBukkit ([56d2a8808](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/commits/56d2a8808))
-- [x] Spigot ([a759b629](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/spigot/commits/a759b629))
+- [x] Bukkit API ([29025a7e](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/commits/29025a7e))
+- [x] CraftBukkit ([c4db4c38d](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/commits/c4db4c38d))
+- [x] Spigot ([bed90fca](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/spigot/commits/bed90fca))
 
 
 ## ⚙️ Technical Stack

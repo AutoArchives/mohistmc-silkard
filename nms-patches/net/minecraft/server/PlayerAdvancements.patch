@@ -8,7 +8,24 @@
                  PlayerAdvancements.LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", identifier, this.playerSavePath);
              } else {
                  this.startProgress(advancementholder, advancementprogress);
-@@ -184,6 +185,7 @@
+@@ -178,12 +179,24 @@
+         boolean flag = false;
+         AdvancementProgress advancementprogress = this.getOrStartProgress(holder);
+         boolean flag1 = advancementprogress.isDone();
++        // CraftBukkit start - fire PlayerAdvancementCriterionGrantEvent
++        CriterionProgress criterionprogress = advancementprogress.getCriterion(criterion);
++
++        if (criterionprogress != null && !criterionprogress.isDone()) {
++            org.bukkit.event.player.PlayerAdvancementCriterionGrantEvent event = new org.bukkit.event.player.PlayerAdvancementCriterionGrantEvent(this.player.getBukkitEntity(), holder.toBukkit(), criterion);
++            this.player.level().getCraftServer().getPluginManager().callEvent(event);
++            if (event.isCancelled()) {
++                return false;
++            }
++        }
++        // CraftBukkit end
+ 
+         if (advancementprogress.grantProgress(criterion)) {
+             this.unregisterListeners(holder);
              this.progressChanged.add(holder);
              flag = true;
              if (!flag1 && advancementprogress.isDone()) {
