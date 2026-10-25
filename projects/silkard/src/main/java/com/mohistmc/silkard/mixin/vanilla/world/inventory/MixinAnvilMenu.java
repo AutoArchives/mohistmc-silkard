@@ -24,7 +24,7 @@ public class MixinAnvilMenu implements ContextAnvilMenu {
 
     // CraftBukkit start
     @Unique
-    public static final int DEFAULT_DENIED_COST = -1;
+    private static final int DEFAULT_DENIED_COST = -1;
 
     @Unique
     public int maximumRepairCost = 40;

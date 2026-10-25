@@ -20,7 +20,7 @@ public class MixinSpreadPlayersCommand {
 
     // CraftBukkit start - handle teleport reason
     @Redirect(method = "setPlayerPositions", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
-    private boolean silkard$teleportWithCause(Entity entity, ServerLevel level, double x, double y, double z, Set<Relative> relatives, float yRot, float xRot, boolean resetCamera) {
+    private static boolean silkard$teleportWithCause(Entity entity, ServerLevel level, double x, double y, double z, Set<Relative> relatives, float yRot, float xRot, boolean resetCamera) {
         return ((ContextEntity) entity).teleportTo(level, x, y, z, relatives, yRot, xRot, resetCamera, PlayerTeleportEvent.TeleportCause.COMMAND);
     }
     // CraftBukkit end

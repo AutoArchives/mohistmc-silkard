@@ -18,13 +18,13 @@ public class MixinHurtByTargetGoal {
 
     // CraftBukkit start
     @Redirect(method = "start", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
-    private boolean silkard$targetAttackedEntity(Mob mob, LivingEntity target) {
-        return ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY, true);
+    private void silkard$targetAttackedEntity(Mob mob, LivingEntity target) {
+        ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY, true);
     }
 
     @Redirect(method = "alertOther", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
-    private boolean silkard$targetAttackedNearbyEntity(Mob other, LivingEntity hurtByMob) {
-        return ((ContextMob) other).setTarget(hurtByMob, EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true);
+    private void silkard$targetAttackedNearbyEntity(Mob other, LivingEntity hurtByMob) {
+        ((ContextMob) other).setTarget(hurtByMob, EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true);
     }
     // CraftBukkit end
 }

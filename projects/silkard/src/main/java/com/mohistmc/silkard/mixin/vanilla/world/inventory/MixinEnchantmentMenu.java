@@ -83,8 +83,8 @@ public abstract class MixinEnchantmentMenu extends AbstractContainerMenu {
         return true;
     }
 
-    @Redirect(method = "slotsChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;broadcastChanges()V"))
-    private void silkard$slotsChanged$broadcastChanges(AbstractContainerMenu menu) {
+    @Redirect(method = "lambda$slotsChanged$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/EnchantmentMenu;broadcastChanges()V"))
+    private void silkard$slotsChanged$broadcastChanges(EnchantmentMenu menu) {
         // CraftBukkit start - PrepareItemEnchantEvent
         net.minecraft.world.item.ItemStack itemstack = this.enchantSlots.getItem(0);
         org.bukkit.craftbukkit.inventory.CraftItemStack item = CraftItemStack.asCraftMirror(itemstack);

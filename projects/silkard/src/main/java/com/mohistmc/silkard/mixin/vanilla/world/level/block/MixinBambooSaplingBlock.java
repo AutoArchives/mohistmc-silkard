@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(BambooSaplingBlock.class)
 public class MixinBambooSaplingBlock {
 
-    @Redirect(method = "growBamboo", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
-    private boolean silkard$growBamboo(Level instance, BlockPos pos, BlockState state, int i, Level level, BlockPos blockPos) {
-        return CraftEventFactory.handleBlockSpreadEvent(level, blockPos, pos, state, i);
+    @Redirect(method = "growBamboo", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
+    private boolean silkard$growBamboo(Level instance, BlockPos pos, BlockState state, Level level, BlockPos blockPos) {
+        return CraftEventFactory.handleBlockSpreadEvent(level, blockPos, pos, state, 3);
     }
 }

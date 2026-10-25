@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(FurnaceResultSlot.class)
 public class MixinFurnaceResultSlot {
 
-    @Redirect(method = "onTake", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;awardUsedRecipesAndPopExperience(Lnet/minecraft/server/level/ServerPlayer;)V"))
+    @Redirect(method = "checkTakeAchievements", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;awardUsedRecipesAndPopExperience(Lnet/minecraft/server/level/ServerPlayer;)V"))
     private void silkard$awardUsedRecipesAndPopExperience(AbstractFurnaceBlockEntity entity, ServerPlayer player) {
         entity.awardUsedRecipesAndPopExperience(player);
     }

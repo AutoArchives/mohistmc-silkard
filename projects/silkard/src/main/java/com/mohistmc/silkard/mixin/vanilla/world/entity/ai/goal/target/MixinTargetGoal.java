@@ -18,13 +18,13 @@ public class MixinTargetGoal {
 
     // CraftBukkit start
     @Redirect(method = "canContinueToUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
-    private boolean silkard$closestEntity(Mob mob, LivingEntity target) {
-        return ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.CLOSEST_ENTITY, true);
+    private void silkard$closestEntity(Mob mob, LivingEntity target) {
+        ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.CLOSEST_ENTITY, true);
     }
 
     @Redirect(method = "stop", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
-    private boolean silkard$forgotTarget(Mob mob, LivingEntity target) {
-        return ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.FORGOT_TARGET, true);
+    private void silkard$forgotTarget(Mob mob, LivingEntity target) {
+        ((ContextMob) mob).setTarget(target, EntityTargetEvent.TargetReason.FORGOT_TARGET, true);
     }
     // CraftBukkit end
 }

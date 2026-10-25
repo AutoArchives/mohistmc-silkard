@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * @author Mgazul
@@ -27,7 +28,7 @@ public class MixinMushroomBlock {
 
     // CraftBukkit - set TreeType before huge mushroom growth
     @Inject(method = "growMushroom", at = @At("HEAD"))
-    private void silkard$mushroomTreeType(ServerLevel level, BlockPos pos, BlockState state, net.minecraft.util.RandomSource random) {
+    private void silkard$mushroomTreeType(ServerLevel level, BlockPos pos, BlockState state, net.minecraft.util.RandomSource random, CallbackInfoReturnable<Boolean> cir) {
         com.mohistmc.silkard.bukkit.BukkitUtils.setTreeType((this.self() == net.minecraft.world.level.block.Blocks.BROWN_MUSHROOM) ? TreeType.BROWN_MUSHROOM : TreeType.RED_MUSHROOM); // CraftBukkit
     }
     // CraftBukkit end

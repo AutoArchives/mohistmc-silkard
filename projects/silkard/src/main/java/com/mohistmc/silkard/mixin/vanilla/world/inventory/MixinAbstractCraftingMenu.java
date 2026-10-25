@@ -1,7 +1,6 @@
 package com.mohistmc.silkard.mixin.vanilla.world.inventory;
 
 import com.mohistmc.silkard.injected.world.inventory.ContextTransientCraftingContainer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.MenuType;
@@ -21,7 +20,7 @@ public abstract class MixinAbstractCraftingMenu {
     @Shadow @Final public ResultContainer resultSlots;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void silkard$init(MenuType<?> menuType, int containerId, int width, int height, Inventory playerInventory, CallbackInfo ci) {
+    private void silkard$init(MenuType<?> menuType, int containerId, int width, int height, CallbackInfo ci) {
         ((ContextTransientCraftingContainer) this.craftSlots).silkard$setResultInventory(this.resultSlots);
     }
 }

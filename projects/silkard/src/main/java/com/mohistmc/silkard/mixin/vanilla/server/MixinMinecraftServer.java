@@ -113,7 +113,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     public void silkard$setTerminal(Terminal terminal) {
         this.terminal = terminal;
     }
-    public static int currentTick = (int) (System.currentTimeMillis() / 50);
+    private static int currentTick = (int) (System.currentTimeMillis() / 50);
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
     public int autosavePeriod;
     public Commands vanillaCommandDispatcher;

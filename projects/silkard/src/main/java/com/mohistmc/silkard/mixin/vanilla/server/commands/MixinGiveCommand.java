@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(GiveCommand.class)
 public class MixinGiveCommand {
 
-    // CraftBukkit - SPIGOT-2942: 26.3 的 giveItem 不再调 ServerPlayer.drop，改走 createItemStackToDrop，@At 目标待重定位
-    @Redirect(method = "giveItem", require = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;createItemStackToDrop(Lnet/minecraft/world/item/ItemStack;ZLnet/minecraft/util/Prediction;)Lnet/minecraft/world/entity/item/ItemEntity;"))
-    private static ItemEntity silkard$createItemStackToDrop(ServerPlayer player, ItemStack stack, boolean dropAround, Object prediction) {
+    // CraftBukkit - SPIGOT-2942: redirect the item drop so Player#drop fires the event with extra flags
+    @Redirect(method = "giveItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;createItemStackToDrop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;"))
+    private static ItemEntity silkard$createItemStackToDrop(ServerPlayer player, ItemStack stack, boolean dropAround, boolean includeThrower) {
         return player.drop(stack, dropAround, false, false); // CraftBukkit - SPIGOT-2942: Add boolean to call event
     }
 }
