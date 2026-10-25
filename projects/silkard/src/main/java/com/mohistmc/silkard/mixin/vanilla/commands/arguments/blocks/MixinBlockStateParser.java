@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(BlockStateParser.class)
 public class MixinBlockStateParser {
 
-    @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/Map;", ordinal = 0))
-    private <K, V> java.util.Map<K, V> silkard$stableProperties() {
+    @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;", ordinal = 0))
+    private <K, V> java.util.HashMap<K, V> silkard$stableProperties() {
         return Maps.newLinkedHashMap(); // CraftBukkit - stable ordering for suggestions and parsing
     }
 }

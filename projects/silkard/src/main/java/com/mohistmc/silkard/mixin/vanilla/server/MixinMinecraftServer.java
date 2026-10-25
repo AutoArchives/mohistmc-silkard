@@ -91,7 +91,9 @@ import org.spongepowered.asm.mixin.Shadow;
  * @author Mgazul
  * @date 2026/4/2 15:15
  */
-@Mixin(MinecraftServer.class)
+// priority 900 < fabric-api 的 1000：@Overwrite 会给目标方法打 @MixinMerged，
+// 低 priority 先应用，fabric 后续注入时 checkPriority(900, 1000) 才能放行
+@Mixin(value = MinecraftServer.class, priority = 900)
 // runningTask() / runAllTasks() 由 ReentrantBlockableEventLoop / BlockableEventLoop 声明，
 // @Shadow 命中不了继承成员 → extends 直接父类后按 protected 继承取用。
 public abstract class MixinMinecraftServer extends net.minecraft.util.thread.ReentrantBlockableEventLoop<net.minecraft.server.TickTask> implements ContextMinecraftServer {
@@ -112,6 +114,11 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     @Override
     public void silkard$setTerminal(Terminal terminal) {
         this.terminal = terminal;
+    }
+
+    @Override
+    public Terminal terminal() {
+        return this.terminal;
     }
     private static int currentTick = (int) (System.currentTimeMillis() / 50);
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
@@ -299,6 +306,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     @Final
     private Map<ResourceKey<Level>, ServerLevel> levels;
 
+    @Mutable
     @Shadow
     @Final
     protected net.minecraft.world.level.storage.WorldData worldData;
@@ -404,10 +412,6 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         throw new AssertionError();
     }
     // CraftBukkit end
-
-
-
-
 
     // CraftBukkit - capture worldLoader (vanilla Main builds it; reconstruct from worldStem)
     // ==================== CraftBukkit world lifecycle ====================
@@ -661,7 +665,10 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
             worlddata.setModdedInfo(this.getServerModName(), this.getModdedStatus().shouldReportAsModified());
             this.initWorld(world, serverleveldata, worlddata, worldoptions);
 
-            this.addLevel(world);
+            // inline addLevel so fabric-lifecycle-events' Map.put wrap target in createLevels survives the @Overwrite
+            Map<ResourceKey<Level>, ServerLevel> newLevels = new java.util.LinkedHashMap<>(this.levels);
+            newLevels.put(world.dimension(), world);
+            this.levels = java.util.Collections.unmodifiableMap(newLevels);
             this.getPlayerList().addWorldborderListener(world);
         }
         this.forceDifficulty();

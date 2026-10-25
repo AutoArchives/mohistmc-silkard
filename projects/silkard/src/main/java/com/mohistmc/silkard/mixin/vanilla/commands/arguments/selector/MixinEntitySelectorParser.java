@@ -49,7 +49,7 @@ public abstract class MixinEntitySelectorParser implements ContextEntitySelector
     }
 
     @Shadow
-    private static CompletableFuture<Suggestions> suggestNameOrSelector(SuggestionsBuilder builder, Consumer<SuggestionsBuilder> names) {
+    private CompletableFuture<Suggestions> suggestNameOrSelector(SuggestionsBuilder builder, Consumer<SuggestionsBuilder> names) {
         throw new AssertionError();
     }
 
@@ -113,7 +113,7 @@ public abstract class MixinEntitySelectorParser implements ContextEntitySelector
     @Override
     public EntitySelector parse(boolean overridePermissions) throws CommandSyntaxException {
         this.startPosition = this.reader.getCursor();
-        this.suggestions = MixinEntitySelectorParser::suggestNameOrSelector;
+        this.suggestions = this::suggestNameOrSelector;
         if (this.reader.canRead() && this.reader.peek() == '@') {
             if (!this.allowSelectors) {
                 throw EntitySelectorParser.ERROR_SELECTORS_NOT_ALLOWED.createWithContext(this.reader);

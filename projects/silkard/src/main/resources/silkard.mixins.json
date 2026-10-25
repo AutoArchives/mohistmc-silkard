@@ -138,7 +138,7 @@
     "vanilla.world.entity.monster.MixinCreeper",
     "vanilla.world.entity.monster.MixinElderGuardian",
     "vanilla.world.entity.monster.MixinEndermite",
-    "vanilla.world.entity.monster.MixinGhast",
+    "vanilla.world.entity.monster.MixinGhast$GhastShootFireballGoal",
     "vanilla.world.entity.monster.MixinGuardian",
     "vanilla.world.entity.monster.MixinSlime",
     "vanilla.world.entity.monster.MixinStrider",

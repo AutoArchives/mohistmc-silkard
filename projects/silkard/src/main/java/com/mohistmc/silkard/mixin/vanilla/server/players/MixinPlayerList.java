@@ -80,7 +80,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @author Mgazul
  * @date 2026/4/2 19:11
  */
-@Mixin(PlayerList.class)
+// priority 900 < fabric 1000：让 fabric 的 @Inject 能注入被 @Overwrite 合并的 placeNewPlayer/reloadResources
+@Mixin(value = PlayerList.class, priority = 900)
 public abstract class MixinPlayerList implements ContextPlayerList {
 
     // @formatter:off

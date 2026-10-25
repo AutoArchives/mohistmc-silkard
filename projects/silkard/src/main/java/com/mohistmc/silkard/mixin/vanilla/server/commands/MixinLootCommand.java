@@ -15,7 +15,7 @@ import java.util.List;
 @Mixin(LootCommand.class)
 public class MixinLootCommand {
 
-    @ModifyVariable(method = "dropInWorld", at = @At("HEAD"), argsOnly = true, ordinal = 2)
+    @ModifyVariable(method = "dropInWorld", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private static List<ItemStack> silkard_removeEmpty(List<ItemStack> drops) {
         drops.removeIf(ItemStack::isEmpty); // CraftBukkit - SPIGOT-6959 Remove empty items for avoid throw an error in new EntityItem
         return drops;

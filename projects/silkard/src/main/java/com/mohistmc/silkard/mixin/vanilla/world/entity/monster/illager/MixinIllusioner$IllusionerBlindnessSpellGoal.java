@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.world.entity.monster.illager;
 
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinIllusioner$IllusionerBlindnessSpellGoal {
 
     @Redirect(method = "performSpellCasting", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z"))
-    private boolean silkard$addEffectToTarget(LivingEntity target, MobEffectInstance effect, LivingEntity source) {
+    private boolean silkard$addEffectToTarget(LivingEntity target, MobEffectInstance effect, Entity source) {
         return target.addEffect(effect, source, org.bukkit.event.entity.EntityPotionEffectEvent.Cause.ATTACK); // CraftBukkit
     }
 }

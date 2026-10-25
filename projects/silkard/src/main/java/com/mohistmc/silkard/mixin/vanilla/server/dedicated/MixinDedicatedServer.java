@@ -23,7 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 // 26.3 里 getPort/isStopped/loadLevel/... 全在 MinecraftServer，@Shadow 命中不了继承成员
 // → extends MinecraftServer 后按 public/protected 继承直接取用。
-@Mixin(DedicatedServer.class)
+// priority 900 < fabric 1000：让 fabric 的 @Redirect 能注入被 @Overwrite 合并的 initServer
+@Mixin(value = DedicatedServer.class, priority = 900)
 public abstract class MixinDedicatedServer extends MinecraftServer implements ContextDedicatedServer {
 
     protected MixinDedicatedServer(Thread thread, net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess levelStorageSource,
@@ -235,6 +236,8 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
             silkard$LOGGER.info("Starting GS4 status responder");
             this.queryThreadGs4 = net.minecraft.server.rcon.thread.QueryThreadGs4.create(this.self());
         }
+        // fabric-lifecycle-events 的 @Redirect 盯着这处 INVOKE，删了启动即崩
+        this.notificationManager().serverStarted();
         return true;
     }
 
