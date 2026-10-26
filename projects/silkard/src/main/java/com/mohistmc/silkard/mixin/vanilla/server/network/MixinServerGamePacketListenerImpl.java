@@ -17,12 +17,15 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.util.LazyPlayerSet;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.slf4j.Logger;
+import org.spigotmc.SpigotConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -49,6 +52,9 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
 
     @Unique
     private String silkard$signedOriginal;
+
+    @Unique
+    private String silkard$spamCommand;
 
     @Redirect(method = "forceSendPlayerSupportBlocks", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V"))
     private void silkard$demoteStandingOnAirLog(Logger instance, String format, Object arg) {
@@ -83,10 +89,25 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
             return;
         }
         this.silkard$unsignedCommand = event.getMessage().substring(1);
+        if (this.silkard$dispatchBukkit(craftServer, event.getPlayer(), this.silkard$unsignedCommand)) {
+            ci.cancel();
+        }
+    }
+
+    // CraftBukkit - plugin commands live in Bukkit's CommandMap, not the NMS dispatcher; route player commands through it.
+    @Unique
+    private boolean silkard$dispatchBukkit(CraftServer craftServer, org.bukkit.entity.Player player, String command) {
+        try {
+            return craftServer.dispatchCommand(player, command);
+        } catch (org.bukkit.command.CommandException ex) {
+            player.sendMessage(org.bukkit.ChatColor.RED + "An internal error occurred while attempting to perform this command");
+            org.bukkit.Bukkit.getLogger().log(java.util.logging.Level.SEVERE, null, ex);
+            return true;
+        }
     }
 
     @Redirect(method = "performUnsignedChatCommand(Ljava/lang/String;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;parseCommand(Ljava/lang/String;)Lcom/mojang/brigadier/ParseResults;"))
-    private ParseResults<CommandSourceStack> silkard$parseUnsigned(String command) {
+    private ParseResults<CommandSourceStack> silkard$parseUnsigned(ServerGamePacketListenerImpl self, String command) {
         return this.parseCommand(this.silkard$unsignedCommand != null ? this.silkard$unsignedCommand : command);
     }
 
@@ -105,6 +126,7 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
             return;
         }
         String command = packet.command();
+        this.silkard$spamCommand = command;
         if (org.spigotmc.SpigotConfig.logCommands) LOGGER.info(this.player.getBukkitEntity().getName() + " issued server command: /" + command);
         PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(this.player.getBukkitEntity(), "/" + command, new LazyPlayerSet(server));
         craftServer.getPluginManager().callEvent(event);
@@ -114,6 +136,9 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
         }
         this.silkard$signedOriginal = command;
         this.silkard$signedCommand = event.getMessage().substring(1);
+        if (this.silkard$dispatchBukkit(craftServer, event.getPlayer(), this.silkard$signedCommand)) {
+            ci.cancel();
+        }
     }
 
     @Redirect(method = "performSignedChatCommand(Lnet/minecraft/network/protocol/game/ServerboundChatCommandSignedPacket;Lnet/minecraft/network/chat/LastSeenMessages;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ServerboundChatCommandSignedPacket;command()Ljava/lang/String;"))
@@ -122,7 +147,7 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
     }
 
     @Redirect(method = "performSignedChatCommand(Lnet/minecraft/network/protocol/game/ServerboundChatCommandSignedPacket;Lnet/minecraft/network/chat/LastSeenMessages;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;collectSignedArguments(Lnet/minecraft/network/protocol/game/ServerboundChatCommandSignedPacket;Lnet/minecraft/network/chat/SignableCommand;Lnet/minecraft/network/chat/LastSeenMessages;)Ljava/util/Map;"))
-    private Map<String, PlayerChatMessage> silkard$collectSigned(ServerboundChatCommandSignedPacket packet, SignableCommand<CommandSourceStack> signable, LastSeenMessages lastSeenMessages) throws net.minecraft.network.chat.SignedMessageChain.DecodeException {
+    private Map<String, PlayerChatMessage> silkard$collectSigned(ServerGamePacketListenerImpl self, ServerboundChatCommandSignedPacket packet, SignableCommand<CommandSourceStack> signable, LastSeenMessages lastSeenMessages) throws net.minecraft.network.chat.SignedMessageChain.DecodeException {
         // CraftBukkit - a plugin rewrote the command, the original signatures no longer match
         if (this.silkard$signedOriginal == null || this.silkard$signedOriginal.equals(this.silkard$signedCommand)) {
             return this.collectSignedArguments(packet, signable, lastSeenMessages);
@@ -130,4 +155,24 @@ public class MixinServerGamePacketListenerImpl implements ContextServerGamePacke
         return Collections.emptyMap();
     }
     // CraftBukkit end
+
+    // Spigot - moved-wrongly threshold (0056)
+    @ModifyConstant(method = "handlePlayerPositionChange(DDDFFZZ)V", constant = @Constant(doubleValue = 0.0625D))
+    private double silkard$movedWronglyThreshold(double constant) {
+        return org.spigotmc.SpigotConfig.movedWronglyThreshold;
+    }
+
+    // Spigot - spam exclusions (0035)
+    @Inject(method = "detectCommandRateSpam", at = @At("HEAD"), cancellable = true)
+    private void silkard$spamExclusions(CallbackInfo ci) {
+        if (this.silkard$spamCommand != null) {
+            for (String exclude : org.spigotmc.SpigotConfig.spamExclusions) {
+                if (this.silkard$spamCommand.startsWith(exclude)) {
+                    ci.cancel();
+                    break;
+                }
+            }
+            this.silkard$spamCommand = null;
+        }
+    }
 }

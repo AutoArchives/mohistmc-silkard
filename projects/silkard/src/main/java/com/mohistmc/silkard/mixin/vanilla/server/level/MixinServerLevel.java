@@ -22,9 +22,12 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.SavedDataStorage;
 import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.level.timers.TimerQueue;
+import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 /**
  * @author Mgazul
@@ -103,6 +106,26 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     public org.bukkit.generator.BiomeProvider biomeProvider;
     public org.bukkit.World.Environment environment;
 
+    @Unique
+    private org.bukkit.craftbukkit.CraftWorld silkard$bukkitWorld;
+
+    @Override
+    public UUID silkard$uuid() {
+        if (this.uuid == null) {
+            this.uuid = UUID.nameUUIDFromBytes(("silkard-world:" + this.serverLevelData.getLevelName()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        return this.uuid;
+    }
+
+    @Override
+    public org.bukkit.craftbukkit.CraftWorld getWorld() {
+        if (this.silkard$bukkitWorld == null) {
+            this.silkard$bukkitWorld = new org.bukkit.craftbukkit.CraftWorld((ServerLevel) (Object) this, this.generator, this.biomeProvider,
+                    (this.environment == null) ? org.bukkit.World.Environment.NORMAL : this.environment);
+        }
+        return this.silkard$bukkitWorld;
+    }
+
     @Override
     public org.bukkit.generator.ChunkGenerator silkard$generator() {
         return this.generator;
@@ -133,5 +156,13 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     @Override
     public void silkard_tickEntityManager() {
         this.entityManager.tick(); // SPIGOT-6526
+    }
+
+    // CraftBukkit - 26.3 dropped the SpawnReason overloads: fire the add-entity event here, then delegate to the raw 1-arg add.
+    public boolean addFreshEntity(Entity entity, CreatureSpawnEvent.SpawnReason reason) {
+        if (!CraftEventFactory.doEntityAddEventCalling((ServerLevel) (Object) this, entity, reason)) {
+            return false;
+        }
+        return ((ServerLevel) (Object) this).addFreshEntity(entity);
     }
 }

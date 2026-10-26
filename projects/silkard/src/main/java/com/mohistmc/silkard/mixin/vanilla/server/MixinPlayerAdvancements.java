@@ -6,10 +6,12 @@ import net.minecraft.advancements.CriterionProgress;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.event.player.PlayerAdvancementCriterionGrantEvent;
+import org.spigotmc.SpigotConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -39,5 +41,12 @@ public abstract class MixinPlayerAdvancements {
             }
         }
         // CraftBukkit end
+    }
+
+    @Inject(method = "save", at = @At("HEAD"))
+    private void silkard$disableAdvancementSaving(CallbackInfo ci) {
+        if (org.spigotmc.SpigotConfig.disableAdvancementSaving) {
+            return;
+        }
     }
 }

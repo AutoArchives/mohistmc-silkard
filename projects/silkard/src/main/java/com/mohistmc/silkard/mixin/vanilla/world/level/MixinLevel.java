@@ -180,7 +180,7 @@ public abstract class MixinLevel implements ContextLevel {
 
     @Override
     public CraftWorld getWorld() {
-        return null; // Overridden in subclasses via nms-patch
+        return null; // Overridden in MixinServerLevel (creates/registers the CraftWorld)
     }
 
     @Override

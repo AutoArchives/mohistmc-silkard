@@ -2,6 +2,7 @@ package com.mohistmc.silkard.mixin.vanilla.world.entity;
 
 import com.mohistmc.silkard.injected.world.entity.ContextEntity;
 import net.minecraft.core.BlockPos;
+import org.bukkit.craftbukkit.entity.CraftEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
@@ -40,6 +41,7 @@ public abstract class MixinEntity implements ContextEntity {
     // Marks an entity, that it was removed by a plugin via Entity#remove
     // Main use case currently is for SPIGOT-7487, preventing dropping of leash when leash is removed
     @Unique public boolean pluginRemoved = false;
+    @Unique private CraftEntity silkard$bukkitEntity;
     // @formatter:on
 
     public float getBukkitYaw() {
@@ -49,7 +51,21 @@ public abstract class MixinEntity implements ContextEntity {
     public boolean isChunkLoaded() {
         return level.hasChunk((int) Math.floor(this.getX()) >> 4, (int) Math.floor(this.getZ()) >> 4);
     }
+
+    // CraftBukkit - the runtime NMS has no concrete getBukkitEntity() on Entity (only the ContextEntity stub); provide the real lazily-created entity here.
+    public CraftEntity getBukkitEntity() {
+        if (this.silkard$bukkitEntity == null) {
+            this.silkard$bukkitEntity = CraftEntity.getEntity(level.getCraftServer(), (Entity) (Object) this);
+        }
+        return this.silkard$bukkitEntity;
+    }
     // CraftBukkit end
+
+    // CraftBukkit - EntitySelector.pushableBy calls this; CB returns isPushable() here (the argument is intentionally ignored).
+    @Override
+    public boolean canCollideWithBukkit(Entity entity) {
+        return ((Entity) (Object) this).isPushable();
+    }
 
     @Override
     public boolean silkard_generation() {

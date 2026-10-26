@@ -108,7 +108,7 @@ public interface ContextEntity extends ContextEntityAccess {
     }
 
     default int getDefaultMaxAirSupply() {
-        throw new ContextStateException("Not implemented");
+        return Entity.TOTAL_AIR_SUPPLY;
     }
 
     default float getBukkitYaw() {

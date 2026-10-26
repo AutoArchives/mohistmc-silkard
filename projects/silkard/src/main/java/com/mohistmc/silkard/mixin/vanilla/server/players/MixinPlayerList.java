@@ -352,6 +352,11 @@ public abstract class MixinPlayerList implements ContextPlayerList {
         ((ContextServerPlayer) player).silkard$setSentListPacket(true);
         // CraftBukkit end
 
+        // CraftBukkit - vanilla registers the player with PlayerList before sendLevelInfo/addNewPlayer (was missing in this @Overwrite)
+        this.players.add(player);
+        this.playersByUUID.put(player.getUUID(), player);
+        player.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(player)));
+
         ((PlayerList) (Object) this).sendLevelInfo(player, player.level()); // CraftBukkit - SPIGOT-8149 per-world time sync
 
         // CraftBukkit start - only add if the player wasn't moved in the event

@@ -202,7 +202,6 @@
     "vanilla.world.inventory.MixinMenuType",
     "vanilla.world.inventory.MixinMerchantContainer",
     "vanilla.world.inventory.MixinMerchantMenu",
-    "vanilla.world.inventory.MixinPlayerEnderChestContainer",
     "vanilla.world.inventory.MixinResultContainer",
     "vanilla.world.inventory.MixinShulkerBoxMenu",
     "vanilla.world.inventory.MixinSimpleContainer",

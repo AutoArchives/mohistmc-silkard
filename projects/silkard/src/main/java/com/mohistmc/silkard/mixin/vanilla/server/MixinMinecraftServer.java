@@ -122,6 +122,12 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     }
     private static int currentTick = (int) (System.currentTimeMillis() / 50);
     public java.util.Queue<Runnable> processQueue = new java.util.concurrent.ConcurrentLinkedQueue<Runnable>();
+    // Spigot start - recentTps sampler
+    @Unique
+    private static long silkard$tpsSampleStart = System.nanoTime();
+    @Unique
+    private static int silkard$tpsTickCount = 0;
+    // Spigot end
     public int autosavePeriod;
     public Commands vanillaCommandDispatcher;
     private boolean forceTicks;
@@ -915,6 +921,19 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     @Inject(method = "tickServer", at = @At("HEAD"))
     private void silkard$currentTick(BooleanSupplier haveTime, CallbackInfo ci) {
         currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit
+        org.spigotmc.WatchdogThread.tick(); // Spigot
+        // Spigot start - recentTps
+        long silkard$now = System.nanoTime();
+        silkard$tpsTickCount++;
+        if (silkard$now - silkard$tpsSampleStart >= 1000000000L) {
+            double inst = Math.min(20.0D, silkard$tpsTickCount * 1.0E9 / (silkard$now - silkard$tpsSampleStart));
+            org.spigotmc.SpigotConfig.recentTps[0] = org.spigotmc.SpigotConfig.recentTps[0] * 0.92D + inst * 0.08D;
+            org.spigotmc.SpigotConfig.recentTps[1] = org.spigotmc.SpigotConfig.recentTps[1] * 0.983D + inst * 0.017D;
+            org.spigotmc.SpigotConfig.recentTps[2] = org.spigotmc.SpigotConfig.recentTps[2] * 0.995D + inst * 0.005D;
+            silkard$tpsSampleStart = silkard$now;
+            silkard$tpsTickCount = 0;
+        }
+        // Spigot end
     }
 
     /**

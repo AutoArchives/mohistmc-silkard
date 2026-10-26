@@ -4,8 +4,10 @@ import com.mohistmc.silkard.injected.server.level.ContextServerPlayer;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.event.player.PlayerSpawnChangeEvent;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +21,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.util.CraftLocation;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -34,6 +37,9 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     @Shadow private int containerCounter;
     @Shadow public void nextContainerCounter() {}
     // @formatter:on
+
+    @Unique
+    private CraftEntity silkard$serverBukkitEntity;
 
     // CraftBukkit start
     public CraftPlayer.TransferCookieConnection transferCookieConnection;
@@ -91,6 +97,14 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     @Override
     public void silkard$setKickLeaveMessage(String kickLeaveMessage) {
         this.kickLeaveMessage = kickLeaveMessage;
+    }
+
+    // CraftBukkit - runtime NMS has no concrete getBukkitEntity() on ServerPlayer (only the ContextServerPlayer stub); provide the real lazily-created entity.
+    public CraftPlayer getBukkitEntity() {
+        if (this.silkard$serverBukkitEntity == null) {
+            this.silkard$serverBukkitEntity = CraftEntity.getEntity(level().getCraftServer(), (Entity) (Object) this);
+        }
+        return (CraftPlayer) this.silkard$serverBukkitEntity;
     }
 
     @Override
