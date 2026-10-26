@@ -142,6 +142,8 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         CraftServer craftServer = this.server;
         if (craftServer != null && !silkard$pluginsLoaded) {
             silkard$pluginsLoaded = true;
+            org.spigotmc.SpigotConfig.init(new java.io.File("spigot.yml"));
+            org.spigotmc.SpigotConfig.registerCommands();
             craftServer.loadPlugins();
             craftServer.enablePlugins(org.bukkit.plugin.PluginLoadOrder.STARTUP);
         }
@@ -159,6 +161,11 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
     @Override
     public CraftServer silkard$server() {
         return server;
+    }
+
+    @Override
+    public void silkard$setServer(CraftServer server) {
+        this.server = server;
     }
 
     @Override
@@ -944,24 +951,29 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
         if (worldStem != null) {
             this.vanillaCommandDispatcher = worldStem.dataPackResources().getCommands(); // CraftBukkit
         }
-        // Try to see if we're actually running in a terminal, disable jline if not
-        if (System.console() == null && System.getProperty(TerminalBuilder.PROP_PROVIDER) == null) {
-            System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
-            org.bukkit.craftbukkit.Main.useJline = false;
-        }
-
-        try {
-            this.terminal = TerminalBuilder.builder().dumb(false).build();
-        } catch (Throwable e) {
-            try {
-                // Try again with jline disabled for Windows users without C++ 2008 Redistributable
+        // CraftBukkit start - reuse TerminalConsoleAppender's terminal; a second JLine terminal breaks console input
+        this.terminal = net.minecrell.terminalconsole.TerminalConsoleAppender.getTerminal();
+        if (this.terminal == null) {
+            // Try to see if we're actually running in a terminal, disable jline if not
+            if (System.console() == null && System.getProperty(TerminalBuilder.PROP_PROVIDER) == null) {
                 System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
                 org.bukkit.craftbukkit.Main.useJline = false;
-                this.terminal = TerminalBuilder.builder().build();
-            } catch (IOException ex) {
-                silkard$LOGGER.warn("Failed to build terminal", ex);
+            }
+
+            try {
+                this.terminal = TerminalBuilder.builder().dumb(false).build();
+            } catch (Throwable e) {
+                try {
+                    // Try again with jline disabled for Windows users without C++ 2008 Redistributable
+                    System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
+                    org.bukkit.craftbukkit.Main.useJline = false;
+                    this.terminal = TerminalBuilder.builder().build();
+                } catch (IOException ex) {
+                    silkard$LOGGER.warn("Failed to build terminal", ex);
+                }
             }
         }
+        // CraftBukkit end
         Runtime.getRuntime().addShutdownHook(new org.bukkit.craftbukkit.util.ServerShutdownThread((MinecraftServer) (Object) this));
         // CraftBukkit end
     }

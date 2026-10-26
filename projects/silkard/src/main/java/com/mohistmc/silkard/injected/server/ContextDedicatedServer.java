@@ -12,4 +12,8 @@ public interface ContextDedicatedServer {
     default DedicatedServer self() {
         throw new ContextStateException("Not implemented");
     }
+
+    default String silkard$runCommand(net.minecraft.server.rcon.RconConsoleSource rconConsoleSource, String command) {
+        throw new ContextStateException("Not implemented");
+    }
 }

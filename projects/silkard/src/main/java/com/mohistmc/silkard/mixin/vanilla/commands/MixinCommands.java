@@ -207,6 +207,7 @@ public abstract class MixinCommands implements ContextCommands {
     @Overwrite
     public void sendCommands(ServerPlayer player) {
         // CraftBukkit start
+        if (org.spigotmc.SpigotConfig.tabComplete < 0) return; // Spigot
         // Register Vanilla commands into builtRoot as before
         Map<CommandNode<CommandSourceStack>, CommandNode<CommandSourceStack>> map = new IdentityHashMap<>(); // Use identity to prevent aliasing issues
         RootCommandNode<CommandSourceStack> vanillaRoot = new RootCommandNode<>();
@@ -233,6 +234,7 @@ public abstract class MixinCommands implements ContextCommands {
         RootCommandNode<CommandSourceStack> filteredRoot = new RootCommandNode<>();
         for (CommandNode<CommandSourceStack> node : new ArrayList<>(rootcommandnode.getChildren())) {
             if (event.getCommands().contains(node.getName())) {
+                if (!org.spigotmc.SpigotConfig.sendNamespaced && node.getName().contains(":")) continue; // Spigot
                 filteredRoot.addChild(node);
             }
         }

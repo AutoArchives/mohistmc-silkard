@@ -22,7 +22,82 @@ public class Main {
 
     public static void main(String[] args) {
         // Todo: Installation script
-        OptionParser parser = new OptionParser() {
+        OptionParser parser = bukkitOptionParser();
+
+        OptionSet options = null;
+
+        try {
+            options = parser.parse(args);
+        } catch (joptsimple.OptionException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage());
+        }
+
+        if ((options == null) || (options.has("?"))) {
+            try {
+                parser.printHelpOn(System.out);
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (options.has("v")) {
+            System.out.println(CraftServer.class.getPackage().getImplementationVersion());
+        } else {
+            // Do you love Java using + and ! as string based identifiers? I sure do!
+            String path = new File(".").getAbsolutePath();
+            if (path.contains("!") || path.contains("+")) {
+                System.err.println("Cannot run server in a directory with ! or + in the pathname. Please rename the affected folders and try again.");
+                return;
+            }
+
+            float javaVersion = Float.parseFloat(System.getProperty("java.class.version"));
+            if (javaVersion > 70.0) {
+                System.err.println("Unsupported Java detected (" + javaVersion + "). Only up to Java 26 is supported.");
+                return;
+            }
+
+            try {
+                useJline = !Terminal.TYPE_DUMB.equals(System.getProperty(TerminalBuilder.PROP_PROVIDER));
+
+                if (options.has("nojline")) {
+                    useJline = false;
+                }
+
+                if (!useJline) {
+                    // This ensures the terminal literal will always match the jline implementation
+                    System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
+                }
+
+                if (options.has("noconsole")) {
+                    useConsole = false;
+                }
+
+                if (Main.class.getPackage().getImplementationVendor() != null && System.getProperty("IReallyKnowWhatIAmDoingISwear") == null) {
+                    Date buildDate = new Date(Integer.parseInt(Main.class.getPackage().getImplementationVendor()) * 1000L);
+
+                    Calendar deadline = Calendar.getInstance();
+                    deadline.add(Calendar.WEEK_OF_YEAR, -4);
+                    if (buildDate.before(deadline.getTime())) {
+                        System.err.println("*** Error, this build is outdated ***");
+                        System.err.println("*** Please download a new build as per instructions from https://www.spigotmc.org/go/outdated-spigot ***");
+                        System.err.println("*** Server will start in 20 seconds ***");
+                        Thread.sleep(TimeUnit.SECONDS.toMillis(20));
+                    }
+                }
+
+                System.out.println("Loading libraries, please wait...");
+                // CraftBukkit start - silkard: hand OptionSet over to MainHook, then start vanilla Main
+                com.mohistmc.silkard.bukkit.MainHook.configure(options);
+                net.minecraft.server.Main.main(new String[0]);
+                // CraftBukkit end
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+    }
+
+    // silkard: 启动链经 fabric-loader 直达 vanilla Main，CB Main 不会执行；
+    // MixinMain 在 vanilla Main.main HEAD 调用 bukkitOptions 注入这份选项
+    public static OptionParser bukkitOptionParser() {
+        return new OptionParser() {
             {
                 acceptsAll(asList("?", "help"), "Show the help");
 
@@ -138,73 +213,20 @@ public class Main {
                 acceptsAll(asList("initSettings"), "Only create configuration files and then exit"); // SPIGOT-5761: Add initSettings option
             }
         };
+    }
 
-        OptionSet options = null;
-
+    // 未识别参数放行（vanilla 侧选项 bukkit parser 不认识），解析失败退回默认值，保证注入拿到完整选项集
+    public static OptionSet bukkitOptions(String[] args) {
         try {
-            options = parser.parse(args);
+            OptionParser parser = bukkitOptionParser();
+            parser.allowsUnrecognizedOptions();
+            return parser.parse(args);
         } catch (joptsimple.OptionException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage());
-        }
-
-        if ((options == null) || (options.has("?"))) {
             try {
-                parser.printHelpOn(System.out);
-            } catch (IOException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else if (options.has("v")) {
-            System.out.println(CraftServer.class.getPackage().getImplementationVersion());
-        } else {
-            // Do you love Java using + and ! as string based identifiers? I sure do!
-            String path = new File(".").getAbsolutePath();
-            if (path.contains("!") || path.contains("+")) {
-                System.err.println("Cannot run server in a directory with ! or + in the pathname. Please rename the affected folders and try again.");
-                return;
-            }
-
-            float javaVersion = Float.parseFloat(System.getProperty("java.class.version"));
-            if (javaVersion > 70.0) {
-                System.err.println("Unsupported Java detected (" + javaVersion + "). Only up to Java 26 is supported.");
-                return;
-            }
-
-            try {
-                useJline = !Terminal.TYPE_DUMB.equals(System.getProperty(TerminalBuilder.PROP_PROVIDER));
-
-                if (options.has("nojline")) {
-                    useJline = false;
-                }
-
-                if (!useJline) {
-                    // This ensures the terminal literal will always match the jline implementation
-                    System.setProperty(TerminalBuilder.PROP_PROVIDER, Terminal.TYPE_DUMB);
-                }
-
-                if (options.has("noconsole")) {
-                    useConsole = false;
-                }
-
-                if (Main.class.getPackage().getImplementationVendor() != null && System.getProperty("IReallyKnowWhatIAmDoingISwear") == null) {
-                    Date buildDate = new Date(Integer.parseInt(Main.class.getPackage().getImplementationVendor()) * 1000L);
-
-                    Calendar deadline = Calendar.getInstance();
-                    deadline.add(Calendar.WEEK_OF_YEAR, -4);
-                    if (buildDate.before(deadline.getTime())) {
-                        System.err.println("*** Error, this build is outdated ***");
-                        System.err.println("*** Please download a new build as per instructions from https://www.spigotmc.org/go/outdated-spigot ***");
-                        System.err.println("*** Server will start in 20 seconds ***");
-                        Thread.sleep(TimeUnit.SECONDS.toMillis(20));
-                    }
-                }
-
-                System.out.println("Loading libraries, please wait...");
-                // CraftBukkit start - silkard: hand OptionSet over to MainHook, then start vanilla Main
-                com.mohistmc.silkard.bukkit.MainHook.configure(options);
-                net.minecraft.server.Main.main(new String[0]);
-                // CraftBukkit end
-            } catch (Throwable t) {
-                t.printStackTrace();
+                return bukkitOptionParser().parse(new String[0]);
+            } catch (joptsimple.OptionException ex2) {
+                return new OptionParser().parse(new String[0]);
             }
         }
     }

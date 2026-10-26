@@ -31,8 +31,7 @@ public final class MainHook {
         return WORLD_LOADER.get();
     }
 
-    public static void capture(OptionSet options, WorldLoader.DataLoadContext context) {
-        MainHook.options = options;
+    public static void captureWorldLoader(WorldLoader.DataLoadContext context) {
         WORLD_LOADER.set(context);
     }
 }

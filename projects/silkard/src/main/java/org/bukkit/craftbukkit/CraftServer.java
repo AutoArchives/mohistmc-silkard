@@ -409,12 +409,15 @@ public final class CraftServer implements Server {
         return overrideAllCommandBlockCommands || commandsConfiguration.getStringList("command-block-overrides").contains(command);
     }
 
+    // 启动链走 fabric-loader → vanilla Main，OptionSet 里没有 bukkit 的选项，回退到 Main 中的默认值
     private File getConfigFile() {
-        return (File) console.silkard_options().valueOf("bukkit-settings");
+        File file = (File) console.silkard_options().valueOf("bukkit-settings");
+        return file != null ? file : new File("bukkit.yml");
     }
 
     private File getCommandsConfigFile() {
-        return (File) console.silkard_options().valueOf("commands-settings");
+        File file = (File) console.silkard_options().valueOf("commands-settings");
+        return file != null ? file : new File("commands.yml");
     }
 
     private void overrideSpawnLimits() {
@@ -471,7 +474,8 @@ public final class CraftServer implements Server {
     public void loadPlugins() {
         pluginManager.registerInterface(JavaPluginLoader.class);
 
-        File pluginFolder = (File) console.silkard_options().valueOf("plugins");
+        File pluginsOption = (File) console.silkard_options().valueOf("plugins");
+        File pluginFolder = pluginsOption != null ? pluginsOption : new File("plugins");
 
         if (pluginFolder.exists()) {
             Plugin[] plugins = pluginManager.loadPlugins(pluginFolder);
@@ -504,8 +508,9 @@ public final class CraftServer implements Server {
         }
 
         if (type == PluginLoadOrder.POSTWORLD) {
+            setVanillaCommands(true); // Spigot
             commandMap.setFallbackCommands();
-            setVanillaCommands();
+            setVanillaCommands(false); // Spigot
             commandMap.registerServerAliases();
             DefaultPermissions.registerCorePermissions();
             CraftDefaultPermissions.registerCorePermissions();
@@ -519,12 +524,21 @@ public final class CraftServer implements Server {
         pluginManager.disablePlugins();
     }
 
-    private void setVanillaCommands() {
+    private void setVanillaCommands(boolean first) { // Spigot
         Commands dispatcher = console.vanillaCommandDispatcher();
 
         // Build a list of all Vanilla commands and create wrappers
         for (CommandNode<CommandSourceStack> cmd : dispatcher.getDispatcher().getRoot().getChildren()) {
-            commandMap.register("minecraft", new VanillaCommandWrapper(dispatcher, cmd));
+            // Spigot start - allow vanilla commands to be the main version of a command
+            VanillaCommandWrapper wrapper = new VanillaCommandWrapper(dispatcher, cmd);
+            if (org.spigotmc.SpigotConfig.replaceCommands.contains(wrapper.getName())) {
+                if (first) {
+                    commandMap.register("minecraft", wrapper);
+                }
+            } else if (!first) {
+                commandMap.register("minecraft", wrapper);
+            }
+            // Spigot end
         }
     }
 
@@ -816,7 +830,9 @@ public final class CraftServer implements Server {
 
     @Override
     public File getUpdateFolderFile() {
-        return new File((File) console.silkard_options().valueOf("plugins"), this.configuration.getString("settings.update-folder", "update"));
+        File pluginsOption = (File) console.silkard_options().valueOf("plugins");
+        File pluginFolder = pluginsOption != null ? pluginsOption : new File("plugins");
+        return new File(pluginFolder, this.configuration.getString("settings.update-folder", "update"));
     }
 
     @Override
@@ -2116,6 +2132,12 @@ public final class CraftServer implements Server {
     }
 
     public List<String> tabCompleteCommand(Player player, String message, ServerLevel world, Vec3 pos) {
+        // Spigot start
+        if ( (org.spigotmc.SpigotConfig.tabComplete < 0 || message.length() <= org.spigotmc.SpigotConfig.tabComplete) && !message.contains( " " ) )
+        {
+            return ImmutableList.of();
+        }
+        // Spigot end
         List<String> completions = null;
         try {
             if (message.startsWith("/")) {

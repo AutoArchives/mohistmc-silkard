@@ -11,6 +11,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -26,10 +27,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinMain {
 
     /**
+     * vanilla Main.main HEAD：把 bukkit 选项解析结果交给 MainHook，
+     * 让 MinecraftServer.silkard_options() 拿到带 bukkit 选项的 OptionSet
+     * （CB Main 在 fabric 启动链上不会执行，只能从这里注入）。
+     */
+    @Inject(method = "main", at = @At("HEAD"))
+    private static void silkard$bukkitOptions(String[] args, CallbackInfo ci) {
+        MainHook.configure(org.bukkit.craftbukkit.Main.bukkitOptions(args)); // CraftBukkit
+    }
+
+    /**
      * WorldLoader.load 的 context 回调（Main.main 内 lambda）—— 捕获 DataLoadContext（CB worldLoader.set 等价）。
      */
     @Inject(method = "lambda$main$1", at = @At("HEAD"), require = 0)
     private static void silkard$captureWorldLoader(Dynamic levelDataTag, LevelStorageSource.LevelStorageAccess access, DedicatedServerSettings settings, OptionSet options, OptionSpec demo, OptionSpec bonusChest, WorldLoader.DataLoadContext context, CallbackInfoReturnable<WorldLoader.DataLoadOutput> cir) {
-        MainHook.capture(options, context); // CraftBukkit
+        MainHook.captureWorldLoader(context); // CraftBukkit
     }
 }

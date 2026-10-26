@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.server.dedicated;
 
 import com.mohistmc.silkard.injected.server.ContextDedicatedServer;
+import com.mohistmc.silkard.injected.server.ContextMinecraftServer;
 import java.io.IOException;
 import net.minecraft.server.rcon.thread.QueryThreadGs4;
 import net.minecraft.util.debugchart.RemoteSampleLogger;
@@ -10,8 +11,11 @@ import java.util.Locale;
 import java.util.Objects;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -50,6 +54,10 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
     @org.spongepowered.asm.mixin.Shadow
     public abstract void handleConsoleInput(String msg, net.minecraft.commands.CommandSourceStack source);
 
+    @Shadow
+    @Final
+    private java.util.List<net.minecraft.server.ConsoleInput> consoleInput;
+
     @org.spongepowered.asm.mixin.Shadow
     protected abstract boolean convertOldUsers();
 
@@ -85,6 +93,13 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
                 .option(org.jline.reader.LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                 .completer(new org.bukkit.craftbukkit.command.ConsoleCommandCompleter())
                 .build();
+        // jline inserts a tab instead of completing when this option is set
+        reader.unsetOpt(org.jline.reader.LineReader.Option.INSERT_TAB);
+        // share the appender's reader so log output is drawn above the prompt
+        final boolean appenderReader = net.minecrell.terminalconsole.TerminalConsoleAppender.getTerminal() == terminal;
+        if (appenderReader) {
+            net.minecrell.terminalconsole.TerminalConsoleAppender.setReader(reader);
+        }
         // CraftBukkit end
         Thread thread = new Thread("Server console handler") {
             {
@@ -133,6 +148,10 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
                 } catch (Throwable ioexception) {
                     // CraftBukkit end
                     silkard$LOGGER.error("Exception handling console input", ioexception);
+                } finally {
+                    if (appenderReader) {
+                        net.minecrell.terminalconsole.TerminalConsoleAppender.setReader(null);
+                    }
                 }
 
             }
@@ -152,9 +171,6 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
                 logger.removeAppender(appender);
             }
         }
-
-        org.bukkit.craftbukkit.util.TerminalConsoleWriterThread writerThread = new org.bukkit.craftbukkit.util.TerminalConsoleWriterThread(System.out, reader);
-        writerThread.start();
 
         System.setOut(org.apache.logging.log4j.io.IoBuilder.forLogger(logger).setLevel(org.apache.logging.log4j.Level.INFO).buildPrintStream());
         System.setErr(org.apache.logging.log4j.io.IoBuilder.forLogger(logger).setLevel(org.apache.logging.log4j.Level.WARN).buildPrintStream());
@@ -239,6 +255,59 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Co
         // fabric-lifecycle-events 的 @Redirect 盯着这处 INVOKE，删了启动即崩
         this.notificationManager().serverStarted();
         return true;
+    }
+
+    /**
+     * @author Mgazul
+     * @reason CraftBukkit - fire ServerCommandEvent and drain the queue through the bukkit command map
+     */
+    @Overwrite
+    public void handleConsoleInputs() {
+        // CraftBukkit start
+        ContextMinecraftServer contextServer = (ContextMinecraftServer) (Object) this;
+        org.bukkit.craftbukkit.CraftServer craftServer = contextServer.silkard$server();
+        org.bukkit.command.ConsoleCommandSender consoleSender = contextServer.silkard_console();
+
+        while (!this.consoleInput.isEmpty()) {
+            net.minecraft.server.ConsoleInput consoleinput = this.consoleInput.remove(0);
+
+            if (craftServer == null || consoleSender == null) {
+                this.getCommands().performPrefixedCommand(consoleinput.source, consoleinput.msg); // CraftBukkit - vanilla fallback before CraftServer is up
+                continue;
+            }
+
+            org.bukkit.event.server.ServerCommandEvent event = new org.bukkit.event.server.ServerCommandEvent(consoleSender, consoleinput.msg);
+            craftServer.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                continue;
+            }
+            consoleinput = new net.minecraft.server.ConsoleInput(event.getCommand(), consoleinput.source);
+
+            craftServer.dispatchServerCommand(consoleSender, consoleinput);
+        }
+        // CraftBukkit end
+    }
+
+    @Override
+    public String silkard$runCommand(net.minecraft.server.rcon.RconConsoleSource rconConsoleSource, String command) {
+        // CraftBukkit start - fire RemoteServerCommandEvent, then dispatch through the bukkit command map
+        rconConsoleSource.prepareForCommand();
+        this.executeBlocking(() -> {
+            net.minecraft.commands.CommandSourceStack wrapper = rconConsoleSource.createCommandSourceStack();
+            org.bukkit.event.server.RemoteServerCommandEvent event = new org.bukkit.event.server.RemoteServerCommandEvent(((com.mohistmc.silkard.injected.server.rcon.ContextRconConsoleSource) rconConsoleSource).getBukkitSender(wrapper), command);
+            org.bukkit.craftbukkit.CraftServer craftServer = ((ContextMinecraftServer) (Object) this).silkard$server();
+            if (craftServer != null) {
+                craftServer.getPluginManager().callEvent(event);
+            }
+            if (event.isCancelled()) {
+                return;
+            }
+            if (craftServer != null) {
+                craftServer.dispatchServerCommand(event.getSender(), new net.minecraft.server.ConsoleInput(event.getCommand(), wrapper));
+            }
+        });
+        return rconConsoleSource.getCommandResponse();
+        // CraftBukkit end
     }
 
 }

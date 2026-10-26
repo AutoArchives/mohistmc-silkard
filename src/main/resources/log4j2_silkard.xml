@@ -29,7 +29,6 @@
         <Logger level="info" name="com.mojang"/>
         <Logger level="info" name="net.minecraft"/>
         <Root level="all">
-            <AppenderRef ref="Console" level="INFO"/>
             <AppenderRef ref="TerminalConsole" level="info"/>
             <AppenderRef ref="File" level="INFO"/>
         </Root>

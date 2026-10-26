@@ -100,7 +100,7 @@ public abstract class MixinPlayerList implements ContextPlayerList {
         if (((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard$server() == null) {
             ((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard$setServer(new org.bukkit.craftbukkit.CraftServer((net.minecraft.server.dedicated.DedicatedServer) (Object) this.server, (PlayerList) (Object) this));
             ((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard_console(org.bukkit.craftbukkit.command.ColouredConsoleSender.getInstance());
-            org.bukkit.Bukkit.setServer(((com.mohistmc.silkard.injected.server.ContextMinecraftServer) this.server).silkard$server());
+            // CraftServer 构造函数已调用 Bukkit.setServer，这里再调会触发单例重定义异常
         }
     }
     // CraftBukkit end
