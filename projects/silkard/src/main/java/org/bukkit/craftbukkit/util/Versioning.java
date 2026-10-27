@@ -1,29 +1,24 @@
 package org.bukkit.craftbukkit.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.bukkit.Bukkit;
+import java.util.Optional;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 
 public final class Versioning {
-    public static String getBukkitVersion() {
-        String result = "Unknown-Version";
 
-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/org.bukkit/bukkit/pom.properties");
-        Properties properties = new Properties();
-
-        if (stream != null) {
-            try {
-                properties.load(stream);
-
-                result = properties.getProperty("version");
-            } catch (IOException ex) {
-                Logger.getLogger(Versioning.class.getName()).log(Level.SEVERE, "Could not get Bukkit version!", ex);
-            }
+    // Silkard - the mod version is "<minecraft>-<abbreviated git id>", the git id is the one we report
+    public static String getGitHash() {
+        try {
+            Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer("silkard");
+            String version = mod.map(container -> container.getMetadata().getVersion().getFriendlyString()).orElse("unknown");
+            int separator = version.lastIndexOf('-');
+            return separator < 0 ? version : version.substring(separator + 1);
+        } catch (Throwable ex) {
+            return "unknown";
         }
+    }
 
-        return result;
+    public static String getBukkitVersion(String minecraftVersion) {
+        return minecraftVersion + "-R0.1-SNAPSHOT";
     }
 }

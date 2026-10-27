@@ -1,11 +1,14 @@
 package com.mohistmc.silkard.mixin.vanilla.network;
 
 import com.mohistmc.silkard.injected.network.ContextConnection;
+import io.netty.channel.ChannelFuture;
 import java.net.SocketAddress;
 import net.minecraft.network.Connection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * @author Mgazul
@@ -20,6 +23,12 @@ public abstract class MixinConnection implements ContextConnection {
 
     @Shadow
     public abstract SocketAddress getRemoteAddress();
+
+    // CraftBukkit - we can't wait here, this may be called from an event loop
+    @Redirect(method = "disconnect(Lnet/minecraft/network/DisconnectionDetails;)V", at = @At(value = "INVOKE", target = "Lio/netty/channel/ChannelFuture;awaitUninterruptibly()Lio/netty/channel/ChannelFuture;"))
+    private ChannelFuture silkard$closeWithoutBlocking(ChannelFuture future) {
+        return future;
+    }
 
     @Override
     public String silkard$hostname() {

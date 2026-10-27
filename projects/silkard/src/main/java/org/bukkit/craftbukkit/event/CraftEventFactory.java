@@ -302,6 +302,10 @@ public class CraftEventFactory {
         return callPlayerSignOpenEvent((org.bukkit.entity.Player) player.getBukkitEntity(), sign, side, cause);
     }
 
+    public static boolean callPlayerSignOpenEvent(Player player, SignBlockEntity tileEntitySign, boolean front, PlayerSignOpenEvent.Cause cause) {
+        return callPlayerSignOpenEvent(player, tileEntitySign, front ? SignTextSlot.FRONT : SignTextSlot.BACK, cause);
+    }
+
     /**
      * PlayerSignOpenEvent
      */

@@ -2,8 +2,13 @@ package com.mohistmc.silkard.mixin.vanilla.world.entity.projectile.hurtingprojec
 
 import com.mohistmc.silkard.injected.world.entity.projectile.hurtingprojectile.ContextAbstractHurtingProjectile;
 import com.mohistmc.silkard.util.ContextStateException;
+import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.entity.projectile.hurtingprojectile.AbstractHurtingProjectile;
+import net.minecraft.world.phys.HitResult;
+import org.bukkit.event.entity.EntityRemoveEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * @author Mgazul
@@ -34,4 +39,16 @@ public class MixinAbstractHurtingProjectile implements ContextAbstractHurtingPro
     public void silkard$isIncendiary(boolean incendiary) {
         this.isIncendiary = incendiary;
     }
+
+    // CraftBukkit start - projectile hit event / remove cause
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/hurtingprojectile/AbstractHurtingProjectile;hitTargetOrDeflectSelf(Lnet/minecraft/world/phys/HitResult;)Lnet/minecraft/world/entity/projectile/ProjectileDeflection;"))
+    private ProjectileDeflection silkard$preHitTargetOrDeflectSelf(AbstractHurtingProjectile instance, HitResult hitResult) {
+        return instance.preHitTargetOrDeflectSelf(hitResult);
+    }
+
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/hurtingprojectile/AbstractHurtingProjectile;discard()V"))
+    private void silkard$discard(AbstractHurtingProjectile instance) {
+        instance.discard(EntityRemoveEvent.Cause.DESPAWN);
+    }
+    // CraftBukkit end
 }

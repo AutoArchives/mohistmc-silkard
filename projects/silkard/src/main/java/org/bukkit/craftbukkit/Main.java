@@ -39,7 +39,7 @@ public class Main {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (options.has("v")) {
-            System.out.println(CraftServer.class.getPackage().getImplementationVersion());
+            System.out.println("Silkard " + org.bukkit.craftbukkit.util.Versioning.getGitHash());
         } else {
             // Do you love Java using + and ! as string based identifiers? I sure do!
             String path = new File(".").getAbsolutePath();

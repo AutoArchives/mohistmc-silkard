@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "silkard",
 	"version": "${version}",
-	"name": "silkard",
+	"name": "Silkard",
 	"description": "Fabric + Spigot",
 	"authors": [
 		"MohistMC"

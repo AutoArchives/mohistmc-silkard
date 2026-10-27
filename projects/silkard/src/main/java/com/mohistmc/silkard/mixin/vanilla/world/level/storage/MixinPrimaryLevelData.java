@@ -9,6 +9,8 @@ import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 
 /**
  * @author Mgazul
@@ -51,5 +53,16 @@ public class MixinPrimaryLevelData implements ContextPrimaryLevelData {
         if (!this.settings.levelName.equals(name)) {
             this.settings.levelName = name;
         }
+    }
+
+    @Inject(method = "setTagData", at = @At("RETURN"))
+    private void silkard$storeBukkitValues(net.minecraft.nbt.CompoundTag tag, java.util.UUID singlePlayerUUID, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        // CraftBukkit start - world PDC + version stamp
+        if (this.world == null) {
+            return;
+        }
+        tag.putString("Bukkit.Version", org.bukkit.Bukkit.getName() + "/" + org.bukkit.Bukkit.getVersion() + "/" + org.bukkit.Bukkit.getBukkitVersion());
+        this.world.getWorld().storeBukkitValues(tag);
+        // CraftBukkit end
     }
 }

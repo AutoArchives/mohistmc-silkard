@@ -32,6 +32,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Util;
 import net.minecraft.util.profiling.Profiler;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.command.BukkitCommandWrapper;
+import org.bukkit.craftbukkit.command.CraftCommandMap;
 import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.jspecify.annotations.Nullable;
@@ -222,6 +225,18 @@ public abstract class MixinCommands implements ContextCommands {
         map.put(this.dispatcher.getRoot(), rootcommandnode);
         fillUsableCommands(this.dispatcher.getRoot(), rootcommandnode, player.createCommandSourceStack(), (Map) map);
 
+        // CraftBukkit - client parses the typed command against this tree, anything missing renders red
+        CraftServer craftServer = ((ContextMinecraftServer) player.level().getServer()).silkard$server();
+        if (craftServer != null) {
+            for (Map.Entry<String, org.bukkit.command.Command> entry : ((CraftCommandMap) craftServer.getCommandMap()).getKnownCommands().entrySet()) {
+                if (rootcommandnode.getChild(entry.getKey()) != null) {
+                    continue;
+                }
+                CommandDispatcher<CommandSourceStack> wrapper = new CommandDispatcher<>();
+                rootcommandnode.addChild(new BukkitCommandWrapper(craftServer, entry.getValue()).register(wrapper, entry.getKey()));
+            }
+        }
+
         Collection<String> bukkit = new LinkedHashSet<>();
         for (CommandNode<CommandSourceStack> node : rootcommandnode.getChildren()) {
             bukkit.add(node.getName());
@@ -240,6 +255,7 @@ public abstract class MixinCommands implements ContextCommands {
         }
         rootcommandnode = filteredRoot;
         // CraftBukkit end
+        if (LOGGER.isDebugEnabled()) LOGGER.debug("Sending {} commands to {}", rootcommandnode.getChildren().size(), player.getPlainTextName());
         player.connection.send(new ClientboundCommandsPacket(rootcommandnode, COMMAND_NODE_INSPECTOR));
     }
 

@@ -693,6 +693,7 @@ public abstract class MixinMinecraftServer extends net.minecraft.util.thread.Ree
 
         this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.POSTWORLD);
         this.server.getPluginManager().callEvent(new ServerLoadEvent(ServerLoadEvent.LoadType.STARTUP));
+        ((com.mohistmc.silkard.injected.server.network.ContextServerConnectionListener) this.connection).acceptConnections(); // CraftBukkit
     }
     // CraftBukkit end
 

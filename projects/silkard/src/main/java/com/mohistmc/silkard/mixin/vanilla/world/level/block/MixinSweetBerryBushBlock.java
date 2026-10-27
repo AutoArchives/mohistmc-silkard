@@ -1,11 +1,14 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.block;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import java.util.LinkedList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,6 +34,12 @@ public class MixinSweetBerryBushBlock {
             return false;
         }
         return true;
+    }
+
+    // CraftBukkit - keep the block in the damage source so plugins get the bush location
+    @Redirect(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;hurtServer(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
+    private boolean silkard$berryDamage(Entity instance, ServerLevel serverLevel, DamageSource source, float amount, @Local(argsOnly = true) BlockPos pos) {
+        return instance.hurtServer(serverLevel, serverLevel.damageSources().sweetBerryBush().directBlock(serverLevel, pos), amount);
     }
     // CraftBukkit end
 

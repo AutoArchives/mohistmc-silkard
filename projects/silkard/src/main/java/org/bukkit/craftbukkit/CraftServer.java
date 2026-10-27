@@ -282,7 +282,6 @@ import org.yaml.snakeyaml.error.MarkedYAMLException;
 
 public final class CraftServer implements Server {
     private final String serverVersion;
-    private final String bukkitVersion = Versioning.getBukkitVersion();
     private final Logger logger = Logger.getLogger("Minecraft");
     private final ServicesManager servicesManager = new SimpleServicesManager();
     private final CraftScheduler scheduler = new CraftScheduler();
@@ -336,7 +335,7 @@ public final class CraftServer implements Server {
                 return player.getBukkitEntity();
             }
         }));
-        this.serverVersion = CraftServer.class.getPackage().getImplementationVersion();
+        this.serverVersion = Versioning.getGitHash();
         this.structureManager = new CraftStructureManager(console.getStructureTemplateManager(), console.registryAccess());
         this.dataPackManager = new CraftDataPackManager(this.getServer().getPackRepository());
         this.serverTickManager = new CraftServerTickManager(console.tickRateManager());
@@ -595,7 +594,7 @@ public final class CraftServer implements Server {
 
     @Override
     public String getName() {
-        return console.getServerModName();
+        return "Silkard";
     }
 
     @Override
@@ -605,7 +604,7 @@ public final class CraftServer implements Server {
 
     @Override
     public String getBukkitVersion() {
-        return bukkitVersion;
+        return Versioning.getBukkitVersion(console.getServerVersion());
     }
 
     @Override

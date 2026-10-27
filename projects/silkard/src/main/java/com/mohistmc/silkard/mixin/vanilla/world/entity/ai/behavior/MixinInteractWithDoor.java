@@ -5,13 +5,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.InteractWithDoor;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * @author Mgazul
@@ -21,17 +20,23 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinInteractWithDoor {
 
     // CraftBukkit start - entities opening doors
-    // 26.3: CB 的 lambda$static$0 已改名为 lambda$create$2（declarative BehaviorBuilder 重构），setOpen 调用点不变
-    @Redirect(method = "lambda$create$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/DoorBlock;setOpen(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Z)V"))
-    private static void silkard$openDoorEvent(DoorBlock door, net.minecraft.world.entity.Entity entity, Level level, BlockState state, BlockPos pos, boolean open, @Local(argsOnly = true) LivingEntity body) {
-        if (entity != null && !entity.is(body)) {
-            door.setOpen(entity, level, state, pos, open);
-            return;
-        }
+    @Inject(method = "lambda$create$2", cancellable = true, at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/level/block/DoorBlock;setOpen(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Z)V"))
+    private static void silkard$openDoor(CallbackInfo ci, @Local(argsOnly = true) LivingEntity body, @Local(ordinal = 0) BlockPos pos) {
+        silkard$callInteract(ci, body, pos);
+    }
+
+    @Inject(method = "lambda$create$2", cancellable = true, at = @At(value = "INVOKE", ordinal = 1, target = "Lnet/minecraft/world/level/block/DoorBlock;setOpen(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Z)V"))
+    private static void silkard$openDoorForOtherMobs(CallbackInfo ci, @Local(argsOnly = true) LivingEntity body, @Local(ordinal = 1) BlockPos pos) {
+        silkard$callInteract(ci, body, pos);
+    }
+
+    // CraftBukkit returns false when cancelled, which is what cancelling a boolean target does by default.
+    private static void silkard$callInteract(CallbackInfo ci, LivingEntity body, BlockPos pos) {
+        Level level = body.level();
         EntityInteractEvent event = new EntityInteractEvent(body.getBukkitEntity(), CraftBlock.at(level, pos));
         level.getCraftServer().getPluginManager().callEvent(event);
-        if (!event.isCancelled()) {
-            door.setOpen(entity, level, state, pos, open);
+        if (event.isCancelled()) {
+            ci.cancel();
         }
     }
     // CraftBukkit end
