@@ -37,6 +37,10 @@ public interface ContextMob extends ContextNeutralMob {
         throw new ContextStateException("Not implemented");
     }
 
+    default boolean silkard$superSetTarget(LivingEntity entityliving, EntityTargetEvent.TargetReason reason, boolean fireEvent) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default SoundEvent getAmbientSound0() {
         throw new ContextStateException("Not implemented");
     }

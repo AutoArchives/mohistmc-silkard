@@ -19,11 +19,11 @@ import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.event.block.BlockCookEvent;
 import org.bukkit.event.block.CampfireStartEvent;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 /**
  * @author Mgazul
@@ -32,33 +32,54 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(CampfireBlockEntity.class)
 public class MixinCampfireBlockEntity {
 
-    @Inject(method = "cookTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/Containers;dropItemStack(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"), cancellable = true)
-    private static void silkard$blockCook(ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity entity,
-                                          RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> check,
-                                          @Local(ordinal = 0) ItemStack source, @Local(ordinal = 1) ItemStack result,
-                                          CallbackInfo ci) {
-        BlockCookEvent event = new BlockCookEvent(CraftBlock.at(level, pos), CraftItemStack.asCraftMirror(source), CraftItemStack.asBukkitCopy(result));
-        ((ContextLevel) level).getCraftServer().getPluginManager().callEvent(event);
-        ci.cancel();
-        if (event.isCancelled()) {
-            return;
-        }
-        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), CraftItemStack.asNMSCopy(event.getResult()));
-        for (int k = 0; k < entity.getItems().size(); k++) {
-            if (entity.getItems().get(k) == source) {
-                entity.getItems().set(k, ItemStack.EMPTY);
-                break;
+    @Shadow
+    @Final
+    private int[] cookingProgress;
+
+    @Shadow
+    @Final
+    private int[] cookingTime;
+
+    @Overwrite
+    public static void cookTick(ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity entity, RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> check) {
+        boolean flag = false;
+
+        for (int i = 0; i < entity.getItems().size(); i++) {
+            ItemStack itemstack = entity.getItems().get(i);
+            if (!itemstack.isEmpty()) {
+                flag = true;
+                if (entity.cookingProgress[i] >= entity.cookingTime[i]) {
+                    SingleRecipeInput input = new SingleRecipeInput(itemstack);
+                    ItemStack itemstack1 = check.getRecipeFor(input, level).map(holder -> holder.value().assemble(input)).orElse(itemstack);
+
+                    if (itemstack1.isItemEnabled(level.enabledFeatures())) {
+                        BlockCookEvent event = new BlockCookEvent(CraftBlock.at(level, pos), CraftItemStack.asCraftMirror(itemstack), CraftItemStack.asBukkitCopy(itemstack1));
+                        ((ContextLevel) level).getCraftServer().getPluginManager().callEvent(event);
+                        if (event.isCancelled()) {
+                            return;
+                        }
+
+                        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), CraftItemStack.asNMSCopy(event.getResult()));
+                        entity.getItems().set(i, ItemStack.EMPTY);
+                        level.sendBlockUpdated(pos, state, state, 3);
+                    }
+                }
             }
         }
-        level.sendBlockUpdated(pos, state, state, 3);
+
+        if (flag) {
+            level.blockEntityChanged(pos);
+            if (!state.isAir()) {
+                level.updateNeighbourForOutputSignal(pos, state.getBlock());
+            }
+        }
     }
 
-    /*
     @ModifyExpressionValue(method = "placeFood", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/crafting/CampfireCookingRecipe;cookingTime()I"))
     private int silkard$campfireStart(int original, ServerLevel level, LivingEntity sourceEntity, ItemStack placeItem, @Local(ordinal = 0) Optional<RecipeHolder<CampfireCookingRecipe>> optional) {
-        CampfireStartEvent event = new CampfireStartEvent(CraftBlock.at(level, ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos()), CraftItemStack.asCraftMirror(placeItem), (org.bukkit.inventory.CampfireRecipe) optional.get().toBukkitRecipe());
+        BlockPos pos = ((net.minecraft.world.level.block.entity.BlockEntity) (Object) this).getBlockPos();
+        CampfireStartEvent event = new CampfireStartEvent(CraftBlock.at(level, pos), CraftItemStack.asCraftMirror(placeItem), (org.bukkit.inventory.CampfireRecipe) optional.get().toBukkitRecipe());
         ((ContextLevel) level).getCraftServer().getPluginManager().callEvent(event);
         return event.getTotalCookTime();
     }
-    */
 }

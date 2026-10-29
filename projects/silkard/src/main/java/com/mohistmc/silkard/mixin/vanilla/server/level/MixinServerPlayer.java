@@ -64,6 +64,20 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
     }
 
     @Override
+    public void setRespawnPosition(ServerPlayer.RespawnConfig respawnConfig, boolean showMessage, PlayerSpawnChangeEvent.Cause cause) {
+        if (respawnConfig == null) {
+            ((ServerPlayer) (Object) this).setRespawnPosition(null, showMessage);
+            return;
+        }
+
+        PlayerSpawnChangeEvent event = new PlayerSpawnChangeEvent((org.bukkit.entity.Player) ((com.mohistmc.silkard.injected.world.entity.ContextEntity) (Object) this).getBukkitEntity(), null, false, cause);
+        org.bukkit.Bukkit.getPluginManager().callEvent(event);
+        if (!event.isCancelled()) {
+            ((ServerPlayer) (Object) this).setRespawnPosition(respawnConfig, showMessage);
+        }
+    }
+
+    @Override
     public int nextContainerCounterInt() {
         nextContainerCounter();
         return containerCounter;

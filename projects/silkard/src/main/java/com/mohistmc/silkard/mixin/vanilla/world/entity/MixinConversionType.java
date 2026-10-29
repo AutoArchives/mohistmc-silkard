@@ -6,8 +6,8 @@ import org.spongepowered.asm.mixin.Mixin;
 
 /**
  * @author Mgazul
- * @date 2026/6/8
+ * @date 2026/10/29
  */
 @Mixin(ConversionType.class)
-public class MixinConversionType implements ContextConversionType {
+public interface MixinConversionType extends ContextConversionType {
 }

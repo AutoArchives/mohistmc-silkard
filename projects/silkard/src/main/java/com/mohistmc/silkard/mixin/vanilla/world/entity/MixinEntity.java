@@ -3,6 +3,8 @@ package com.mohistmc.silkard.mixin.vanilla.world.entity;
 import com.mohistmc.silkard.injected.world.entity.ContextEntity;
 import net.minecraft.core.BlockPos;
 import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.event.entity.EntityRemoveEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
@@ -58,6 +60,19 @@ public abstract class MixinEntity implements ContextEntity {
             this.silkard$bukkitEntity = CraftEntity.getEntity(level.getCraftServer(), (Entity) (Object) this);
         }
         return this.silkard$bukkitEntity;
+    }
+    // CraftBukkit end
+
+    // CraftBukkit start - EntityRemoveEvent
+    @Override
+    public void remove(Entity.RemovalReason removalReason, EntityRemoveEvent.Cause cause) {
+        CraftEventFactory.callEntityRemoveEvent((Entity) (Object) this, cause);
+        ((Entity) (Object) this).remove(removalReason);
+    }
+
+    @Override
+    public void discard(EntityRemoveEvent.Cause cause) {
+        this.remove(Entity.RemovalReason.DISCARDED, cause);
     }
     // CraftBukkit end
 
