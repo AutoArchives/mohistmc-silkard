@@ -1,5 +1,6 @@
 package com.mohistmc.silkard.bukkit;
 
+import com.mohistmc.silkard.injected.world.level.ContextLevel;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -30,9 +31,12 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.entity.ConduitBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -44,8 +48,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.TreeType;
 import org.bukkit.craftbukkit.CraftRegistry;
 import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.block.CraftBlockState;
+import org.bukkit.craftbukkit.block.CraftBlockStates;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.event.block.CauldronLevelChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 
 /**
@@ -218,6 +226,38 @@ public class BukkitUtils {
 
     public static void setTreeType(TreeType btreeType) {
         treeType = btreeType;
+    }
+
+    public static boolean changeCauldronLevel(Level level, BlockPos pos, BlockState newBlock, Entity entity, CauldronLevelChangeEvent.ChangeReason reason) {
+        CraftBlockState newState = CraftBlockStates.getBlockState(level, pos);
+        newState.setData(newBlock);
+
+        CauldronLevelChangeEvent event = new CauldronLevelChangeEvent(
+                ((ContextLevel) level).getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()),
+                (entity == null) ? null : entity.getBukkitEntity(), reason, newState
+        );
+        ((ContextLevel) level).getCraftServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+        newState.update(true);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(newBlock));
+        return true;
+    }
+
+    public static EntityPotionEffectEvent.Cause consumeEffectCause(ItemStack stack) {
+        if (stack.is(Items.MILK_BUCKET)) {
+            return EntityPotionEffectEvent.Cause.MILK;
+        } else if (stack.is(Items.POTION)) {
+            return EntityPotionEffectEvent.Cause.POTION_DRINK;
+        }
+        return EntityPotionEffectEvent.Cause.FOOD;
+    }
+
+    public static boolean lowerCauldronFillLevel(BlockState state, Level level, BlockPos pos, Entity entity, CauldronLevelChangeEvent.ChangeReason reason) {
+        int i = (Integer) state.getValue(LayeredCauldronBlock.LEVEL) - 1;
+        BlockState blockstate1 = i == 0 ? Blocks.CAULDRON.defaultBlockState() : (BlockState) state.setValue(LayeredCauldronBlock.LEVEL, i);
+        return changeCauldronLevel(level, pos, blockstate1, entity, reason);
     }
 
     public static Optional<EntityType<?>> byString(String id) {

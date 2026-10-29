@@ -1,14 +1,19 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mohistmc.silkard.injected.world.level.ContextLevel;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
@@ -17,6 +22,10 @@ import org.bukkit.craftbukkit.block.CapturedBlockState;
 import org.bukkit.entity.SpawnCategory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * @author Mgazul
@@ -192,4 +201,106 @@ public abstract class MixinLevel implements ContextLevel {
     public ResourceKey<LevelStem> getTypeKey() {
         return null; // Overridden in MixinServerLevel
     }
+
+    // CraftBukkit start - capture tree generation
+    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
+    private void silkard$captureTreeBlockState(BlockPos pos, BlockState blockState, int updateFlags, int updateLimit, CallbackInfoReturnable<Boolean> cir) {
+        if (captureTreeGeneration) {
+            CapturedBlockState capturedBlockState = capturedBlockStates.get(pos);
+            if (capturedBlockState == null) {
+                capturedBlockState = CapturedBlockState.getTreeBlockState((Level) (Object) this, pos, updateFlags);
+                capturedBlockStates.put(pos.immutable(), capturedBlockState);
+            }
+            capturedBlockState.setData(blockState);
+            capturedBlockState.setFlag(updateFlags);
+            cir.setReturnValue(true);
+        }
+    }
+
+    @WrapOperation(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/LevelChunk;setBlockState(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Lnet/minecraft/world/level/block/state/BlockState;"))
+    private BlockState silkard$captureBlockState(LevelChunk chunk, BlockPos pos, BlockState blockState, int updateFlags, Operation<BlockState> original) {
+        boolean captured = false;
+        if (captureBlockStates && !capturedBlockStates.containsKey(pos)) {
+            capturedBlockStates.put(pos.immutable(), CapturedBlockState.getBlockState((Level) (Object) this, pos, updateFlags));
+            captured = true;
+        }
+        BlockState oldState = original.call(chunk, pos, blockState, updateFlags);
+        if (oldState == null && captured) {
+            capturedBlockStates.remove(pos);
+        }
+        return oldState;
+    }
+
+    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;", shift = At.Shift.AFTER), cancellable = true)
+    private void silkard$skipUpdatesWhileCapturing(BlockPos pos, BlockState blockState, int updateFlags, int updateLimit, CallbackInfoReturnable<Boolean> cir) {
+        if (captureBlockStates) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Override
+    public void notifyAndUpdatePhysics(BlockPos blockpos, LevelChunk levelchunk, BlockState oldBlock, BlockState newBlock, BlockState actualBlock, int i, int j) {
+        Level level = (Level) (Object) this;
+        if (actualBlock == newBlock) {
+            if (oldBlock != actualBlock) {
+                level.setBlocksDirty(blockpos, oldBlock, actualBlock);
+            }
+
+            if ((i & 2) != 0 && (!level.isClientSide() || (i & 4) == 0) && (level.isClientSide() || levelchunk == null || (levelchunk.getFullStatus() != null && levelchunk.getFullStatus().isOrAfter(FullChunkStatus.BLOCK_TICKING)))) {
+                level.sendBlockUpdated(blockpos, oldBlock, newBlock, i);
+            }
+
+            if ((i & 1) != 0) {
+                level.updateNeighborsAt(blockpos, oldBlock.getBlock(), null);
+                if (!level.isClientSide() && newBlock.hasAnalogOutputSignal()) {
+                    level.updateNeighbourForOutputSignal(blockpos, newBlock.getBlock());
+                }
+            }
+
+            if ((i & 16) == 0 && j > 0) {
+                int k = i & -34;
+                oldBlock.updateIndirectNeighbourShapes(level, blockpos, k, j - 1);
+                newBlock.updateNeighbourShapes(level, blockpos, k, j - 1);
+                newBlock.updateIndirectNeighbourShapes(level, blockpos, k, j - 1);
+            }
+
+            if (!preventPoiUpdated) {
+                level.updatePOIOnBlockStateChange(blockpos, oldBlock, actualBlock);
+            }
+        }
+    }
+
+    @Inject(method = "getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;", at = @At("HEAD"), cancellable = true)
+    private void silkard$capturedGetBlockState(BlockPos pos, CallbackInfoReturnable<BlockState> cir) {
+        if (captureTreeGeneration) {
+            CapturedBlockState previous = capturedBlockStates.get(pos);
+            if (previous != null) {
+                cir.setReturnValue(previous.getHandle());
+            }
+        }
+    }
+
+    @Inject(method = "getBlockEntity(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;", at = @At("HEAD"), cancellable = true)
+    private void silkard$capturedGetBlockEntity(BlockPos pos, CallbackInfoReturnable<BlockEntity> cir) {
+        BlockEntity captured = capturedTileEntities.get(pos);
+        if (captured != null) {
+            cir.setReturnValue(captured);
+        }
+    }
+
+    @Override
+    public BlockEntity getBlockEntity(BlockPos pos, boolean validate) {
+        BlockEntity captured = capturedTileEntities.get(pos);
+        return captured != null ? captured : ((Level) (Object) this).getBlockEntity(pos);
+    }
+
+    @Inject(method = "setBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;)V", at = @At("HEAD"), cancellable = true)
+    private void silkard$capturedSetBlockEntity(BlockEntity blockEntity, CallbackInfo ci) {
+        BlockPos pos = blockEntity.getBlockPos();
+        if (captureBlockStates) {
+            capturedTileEntities.put(pos.immutable(), blockEntity);
+            ci.cancel();
+        }
+    }
+    // CraftBukkit end
 }

@@ -23,9 +23,9 @@ public class MixinTridentItem {
 
     // CraftBukkit start
     @Redirect(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/Projectile;spawnProjectileFromRotation(Lnet/minecraft/world/entity/projectile/Projectile$ProjectileFactory;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;FFF)Lnet/minecraft/world/entity/projectile/Projectile;"))
-    private Projectile silkard$spawnTrident(Projectile.ProjectileFactory<ThrownTrident> factory, ServerLevel level, ItemStack stack, net.minecraft.world.entity.LivingEntity owner, float x, float y, float z, @Local(argsOnly = true) Player player) {
+    private Projectile silkard$spawnTrident(Projectile.ProjectileFactory<ThrownTrident> factory, ServerLevel level, ItemStack stack, net.minecraft.world.entity.LivingEntity owner, float x, float y, float z) {
         Projectile projectile = Projectile.spawnProjectileFromRotation(factory, level, stack, owner, x, y, z);
-        if (projectile.isRemoved() && player instanceof ServerPlayer serverPlayer) {
+        if (projectile.isRemoved() && owner instanceof ServerPlayer serverPlayer) {
             serverPlayer.getBukkitEntity().updateInventory();
         }
         return projectile;

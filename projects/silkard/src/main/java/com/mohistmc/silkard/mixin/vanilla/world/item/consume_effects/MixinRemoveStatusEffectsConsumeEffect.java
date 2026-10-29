@@ -21,7 +21,7 @@ public class MixinRemoveStatusEffectsConsumeEffect {
     // CraftBukkit start
     @Redirect(method = "apply", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;removeEffect(Lnet/minecraft/core/Holder;)Z"))
     private boolean silkard$removeEffect(LivingEntity user, Holder<MobEffect> holder, @Local(argsOnly = true) ItemStack stack) {
-        return ((ContextLivingEntity) user).removeEffect(holder, MixinConsumeEffect.silkard$consumeCause(stack));
+        return ((ContextLivingEntity) user).removeEffect(holder, com.mohistmc.silkard.bukkit.BukkitUtils.consumeEffectCause(stack));
     }
     // CraftBukkit end
 }

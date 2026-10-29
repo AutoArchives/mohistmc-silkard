@@ -20,7 +20,7 @@ public class MixinApplyStatusEffectsConsumeEffect {
     // CraftBukkit start
     @Redirect(method = "apply", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;addEffect(Lnet/minecraft/world/effect/MobEffectInstance;)Z"))
     private boolean silkard$addEffect(LivingEntity user, MobEffectInstance instance, @Local(argsOnly = true) ItemStack stack) {
-        return ((ContextLivingEntity) user).addEffect(instance, MixinConsumeEffect.silkard$consumeCause(stack));
+        return ((ContextLivingEntity) user).addEffect(instance, com.mohistmc.silkard.bukkit.BukkitUtils.consumeEffectCause(stack));
     }
     // CraftBukkit end
 }

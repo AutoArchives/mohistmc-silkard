@@ -36,7 +36,7 @@ public class MixinProjectileWeaponItem {
 
     // CraftBukkit start - EntityShootBowEvent
     @Redirect(method = "shoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/Projectile;spawnProjectile(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Ljava/util/function/Consumer;)Lnet/minecraft/world/entity/projectile/Projectile;"))
-    private Projectile silkard$callEntityShootBowEvent(Projectile projectile, ServerLevel level, ItemStack projectileStack, Consumer<Projectile> shootAction, @Local(argsOnly = true) LivingEntity shooter, @Local(argsOnly = true) InteractionHand hand, @Local(argsOnly = true) ItemStack weapon, @Local(argsOnly = true) float power) {
+    private Projectile silkard$callEntityShootBowEvent(Projectile projectile, ServerLevel level, ItemStack projectileStack, Consumer<Projectile> shootAction, @Local(argsOnly = true, ordinal = 0) LivingEntity shooter, @Local(argsOnly = true) InteractionHand hand, @Local(argsOnly = true) ItemStack weapon, @Local(argsOnly = true, ordinal = 0) float power) {
         if (this.silkard$shootCancelled) {
             return projectile;
         }

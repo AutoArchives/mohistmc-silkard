@@ -261,7 +261,6 @@ public final class CraftEntityTypes {
         }
     }
 
-    private static final BiConsumer<SpawnData, net.minecraft.world.entity.Entity> POS = (spawnData, entity) -> entity.setPos(spawnData.x(), spawnData.y(), spawnData.z());
     private static final BiConsumer<SpawnData, net.minecraft.world.entity.Entity> ABS_MOVE = (spawnData, entity) -> {
         entity.absSnapTo(spawnData.x(), spawnData.y(), spawnData.z(), spawnData.yaw(), spawnData.pitch());
         entity.setYHeadRot(spawnData.yaw()); // SPIGOT-3587
@@ -435,13 +434,13 @@ public final class CraftEntityTypes {
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.SPRUCE_BOAT, SpruceBoat.class, CraftSpruceBoat::new, createAndMove(EntityTypes.SPRUCE_BOAT)));
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.SPRUCE_CHEST_BOAT, SpruceChestBoat.class, CraftSpruceChestBoat::new, createAndMove(EntityTypes.SPRUCE_CHEST_BOAT)));
 
-        // Set pos
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.MARKER, Marker.class, CraftMarker::new, createAndSetPos(EntityTypes.MARKER)));
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.BLOCK_DISPLAY, BlockDisplay.class, CraftBlockDisplay::new, createAndSetPos(EntityTypes.BLOCK_DISPLAY)));
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.INTERACTION, Interaction.class, CraftInteraction::new, createAndSetPos(EntityTypes.INTERACTION)));
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.ITEM_DISPLAY, ItemDisplay.class, CraftItemDisplay::new, createAndSetPos(EntityTypes.ITEM_DISPLAY)));
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.TEXT_DISPLAY, TextDisplay.class, CraftTextDisplay::new, createAndSetPos(EntityTypes.TEXT_DISPLAY)));
-        register(new EntityTypeData<>(org.bukkit.entity.EntityType.CUSHION, Cushion.class, CraftCushion::new, createAndSetPos(EntityTypes.CUSHION)));
+        // Move (decoration)
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.MARKER, Marker.class, CraftMarker::new, createAndMove(EntityTypes.MARKER)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.BLOCK_DISPLAY, BlockDisplay.class, CraftBlockDisplay::new, createAndMove(EntityTypes.BLOCK_DISPLAY)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.INTERACTION, Interaction.class, CraftInteraction::new, createAndMove(EntityTypes.INTERACTION)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.ITEM_DISPLAY, ItemDisplay.class, CraftItemDisplay::new, createAndMove(EntityTypes.ITEM_DISPLAY)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.TEXT_DISPLAY, TextDisplay.class, CraftTextDisplay::new, createAndMove(EntityTypes.TEXT_DISPLAY)));
+        register(new EntityTypeData<>(org.bukkit.entity.EntityType.CUSHION, Cushion.class, CraftCushion::new, createAndMove(EntityTypes.CUSHION)));
 
         // MISC
         register(new EntityTypeData<>(org.bukkit.entity.EntityType.ITEM, Item.class, CraftItem::new, spawnData -> {
@@ -529,10 +528,6 @@ public final class CraftEntityTypes {
 
     private static <R extends net.minecraft.world.entity.Entity> Function<SpawnData, R> createAndMoveEmptyRot(EntityType<R> entityTypes) {
         return combine(fromEntityType(entityTypes), MOVE_EMPTY_ROT);
-    }
-
-    private static <R extends net.minecraft.world.entity.Entity> Function<SpawnData, R> createAndSetPos(EntityType<R> entityTypes) {
-        return combine(fromEntityType(entityTypes), POS);
     }
 
     private record HangingData(boolean randomize, BlockPos position, Direction direction) {

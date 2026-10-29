@@ -11,6 +11,18 @@ public interface ContextChunkAccess {
         throw new ContextStateException("Not implemented");
     }
 
+    default void silkard_setPersistentDataContainer(DirtyCraftPersistentDataContainer persistentDataContainer) {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default boolean silkard$rawUnsaved() {
+        throw new ContextStateException("Not implemented");
+    }
+
+    default void silkard$removePendingBlockEntity(net.minecraft.core.BlockPos pos) {
+        throw new ContextStateException("Not implemented");
+    }
+
     default void setBiome(int i, int j, int k, Holder<Biome> biome) {
         throw new ContextStateException("Not implemented");
     }

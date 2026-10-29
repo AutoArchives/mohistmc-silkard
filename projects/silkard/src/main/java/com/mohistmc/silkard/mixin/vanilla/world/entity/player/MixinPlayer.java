@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftHumanEntity;
+import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.spongepowered.asm.mixin.Shadow;
 import org.bukkit.event.entity.EntityExhaustionEvent;
 import org.bukkit.event.player.PlayerSpawnChangeEvent;
@@ -57,6 +58,14 @@ public abstract class MixinPlayer implements ContextPlayer {
     @Override
     public void silkard$setOldLevel(int oldLevel) {
         this.oldLevel = oldLevel;
+    }
+
+    @Override
+    public void causeFoodExhaustion(float amount, EntityExhaustionEvent.ExhaustionReason reason) {
+        EntityExhaustionEvent event = CraftEventFactory.callPlayerExhaustionEvent((Player) (Object) this, reason, amount);
+        if (!event.isCancelled()) {
+            ((Player) (Object) this).getFoodData().addExhaustion(event.getExhaustion());
+        }
     }
 
     // CraftBukkit - runtime NMS has no concrete getBukkitEntity() on Player (only the ContextPlayer stub); provide the real lazily-created entity.

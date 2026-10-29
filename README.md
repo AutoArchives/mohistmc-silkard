@@ -4,19 +4,19 @@
 
   <p align="center">
     <a href="https://github.com/MohistMC/Silkard/stargazers">
-      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/MohistMC/Silkard?logo=github&color=181717&style=flat-square">
+      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/MohistMC/Silkard?logo=github&color=181717">
     </a>
     <a href="https://fabricmc.net//">
-      <img alt="Fabric" src="https://img.shields.io/badge/Fabric-26.3-FF8B00?style=flat-square">
+      <img alt="Fabric" src="https://img.shields.io/badge/Fabric-26.3-FF8B00">
     </a>
     <a href="https://www.azul.com/downloads/?version=java-25-lts#zulu">
-      <img alt="JDK" src="https://img.shields.io/badge/JDK-25.0.1-007396?logo=java&logoColor=white&style=flat-square">
+      <img alt="JDK" src="https://img.shields.io/badge/JDK-25.0.1-007396?logo=java&logoColor=white">
     </a>
-    <a href="https://docs.gradle.org/9.5.0/release-notes.html">
-      <img alt="Gradle" src="https://img.shields.io/badge/Gradle-9.6.0-02303A?logo=gradle&logoColor=white&style=flat-square">
+    <a href="https://docs.gradle.org/9.8.1/release-notes.html">
+      <img alt="Gradle" src="https://img.shields.io/badge/Gradle-9.8.1-02303A?logo=gradle&logoColor=white">
     </a>
     <a href="https://discord.gg/mohistmc">
-      <img alt="Discord" src="https://img.shields.io/discord/311256119005937665?color=5865F2&logo=discord&logoColor=white&style=flat-square">
+      <img alt="Discord" src="https://img.shields.io/discord/311256119005937665?color=5865F2&logo=discord&logoColor=white">
     </a>
   </p>
 </div>
@@ -29,7 +29,7 @@
 
 ✅ **Core Integration**
 - [x] Bukkit API ([29025a7e](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/commits/29025a7e))
-- [x] CraftBukkit ([c4db4c38d](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/commits/c4db4c38d))
+- [x] CraftBukkit ([e89124d3e](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/commits/e89124d3e))
 - [x] Spigot ([bed90fca](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/spigot/commits/bed90fca))
 
 

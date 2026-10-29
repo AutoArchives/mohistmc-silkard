@@ -1,12 +1,15 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.chunk;
 
 import com.mohistmc.silkard.injected.world.level.chunk.ContextChunkAccess;
+import java.util.Map;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.biome.Biome;
@@ -32,6 +35,13 @@ public abstract class MixinChunkAccess implements LightChunk, StructureAccess, B
     @Final
     protected LevelChunkSection[] sections;
 
+    @Shadow
+    private volatile boolean unsaved;
+
+    @Shadow
+    @Final
+    protected Map<BlockPos, CompoundTag> pendingBlockEntities;
+
     // CraftBukkit start - SPIGOT-6814: move to IChunkAccess to account for 1.17 to 1.18 chunk upgrading.
     private static final org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry DATA_TYPE_REGISTRY = new org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry();
     public org.bukkit.craftbukkit.persistence.DirtyCraftPersistentDataContainer persistentDataContainer = new org.bukkit.craftbukkit.persistence.DirtyCraftPersistentDataContainer(DATA_TYPE_REGISTRY);
@@ -40,6 +50,23 @@ public abstract class MixinChunkAccess implements LightChunk, StructureAccess, B
     @Override
     public DirtyCraftPersistentDataContainer silkard_persistentDataContainer() {
         return persistentDataContainer;
+    }
+
+    @Override
+    public void silkard_setPersistentDataContainer(DirtyCraftPersistentDataContainer persistentDataContainer) {
+        this.persistentDataContainer = persistentDataContainer;
+    }
+
+    @Override
+    public boolean silkard$rawUnsaved() {
+        return this.unsaved;
+    }
+
+    @Override
+    public void silkard$removePendingBlockEntity(BlockPos pos) {
+        if (!this.pendingBlockEntities.isEmpty()) {
+            this.pendingBlockEntities.remove(pos);
+        }
     }
 
     // CraftBukkit start
