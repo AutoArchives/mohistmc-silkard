@@ -14,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * Ports nms-patches/net/minecraft/world/entity/monster/skeleton/Skeleton.patch.
- *
  * @author Mgazul
  * @date 2026/10/30
  */

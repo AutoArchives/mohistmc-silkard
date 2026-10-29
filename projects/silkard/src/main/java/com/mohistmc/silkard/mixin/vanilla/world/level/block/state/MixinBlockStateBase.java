@@ -18,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Ports nms-patches/net/minecraft/world/level/redstone/NeighborUpdater.patch.
- *
  * @author Mgazul
  * @date 2026/10/28
  */
