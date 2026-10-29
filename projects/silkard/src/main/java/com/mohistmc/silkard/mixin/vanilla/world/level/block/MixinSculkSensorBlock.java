@@ -54,8 +54,8 @@ public class MixinSculkSensorBlock implements ContextBlock {
     }
 
     @Inject(method = "activate", cancellable = true, at = @At("HEAD"))
-    private void silkard$activateRedstone(Entity sourceEntity, Level level, BlockPos pos, BlockState state, CallbackInfo ci, @Local(argsOnly = true, ordinal = 0) LocalIntRef power) {
-        int newCurrent = CraftEventFactory.callRedstoneChange(level, pos, state.getValue(SculkSensorBlock.POWER), power.get()).getNewCurrent();
+    private void silkard$activateRedstone(Entity sourceEntity, Level level, BlockPos pos, BlockState state, int calculatedPower, int frequency, CallbackInfo ci, @Local(argsOnly = true, ordinal = 0) LocalIntRef power) {
+        int newCurrent = CraftEventFactory.callRedstoneChange(level, pos, state.getValue(SculkSensorBlock.POWER), calculatedPower).getNewCurrent();
         if (newCurrent <= 0) {
             ci.cancel();
             return;

@@ -50,10 +50,22 @@ class LibraryLoader
         this.logger = logger;
 
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler()
+        {
+            @Override
+            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception )
+            {
+                logger.log( Level.SEVERE, "Could not create service " + type.getName(), exception );
+            }
+        } );
         locator.addService( RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class );
         locator.addService( TransporterFactory.class, HttpTransporterFactory.class );
 
         this.repository = locator.getService( RepositorySystem.class );
+        if ( this.repository == null )
+        {
+            throw new IllegalStateException( "Could not create the maven repository system" );
+        }
         this.session = MavenRepositorySystemUtils.newSession();
 
         session.setChecksumPolicy( RepositoryPolicy.CHECKSUM_POLICY_FAIL );

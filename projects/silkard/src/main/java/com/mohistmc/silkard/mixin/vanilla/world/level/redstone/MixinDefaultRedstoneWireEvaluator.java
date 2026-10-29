@@ -36,7 +36,7 @@ public abstract class MixinDefaultRedstoneWireEvaluator {
     }
 
     @Redirect(method = "updatePowerStrength", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator;calculateTargetStrength(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)I"))
-    private int silkard$redstoneChange(Level level, BlockPos pos) {
+    private int silkard$redstoneChange(DefaultRedstoneWireEvaluator self, Level level, BlockPos pos) {
         int strength = this.calculateTargetStrength(level, pos);
         int oldPower = this.silkard$state.getValue(RedstoneWireBlock.POWER);
         if (oldPower != strength) {

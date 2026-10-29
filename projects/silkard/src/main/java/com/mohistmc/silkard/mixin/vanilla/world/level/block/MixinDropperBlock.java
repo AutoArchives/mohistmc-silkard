@@ -1,9 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.world.level.block;
 
 import com.mohistmc.silkard.injected.core.dispenser.ContextDefaultDispenseItemBehavior;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.CompoundContainer;
@@ -13,10 +11,10 @@ import net.minecraft.world.level.block.DropperBlock;
 import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.bukkit.craftbukkit.inventory.CraftInventory;
 import org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,6 +26,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(DropperBlock.class)
 public abstract class MixinDropperBlock {
+
+    @Shadow
+    @Final
+    private static Logger LOGGER;
 
     @Shadow
     @Final
@@ -44,30 +46,31 @@ public abstract class MixinDropperBlock {
         silkard$initDropper();
     }
 
-    // CraftBukkit - InventoryMoveItemEvent when pushing items into other inventories.
-    // 不能用 @Overwrite：覆盖整个方法体会把其他 mod（fabric-transfer-api-v1）在
-    // dispenseFrom 里的 INVOKE 注入点一起抹掉，导致它们 INJECT_PREPARE 阶段抛
-    // "cannot inject into ... merged by MixinDropperBlock"。
+    // CraftBukkit start - InventoryMoveItemEvent when pushing items into other inventories
     @Redirect(method = "dispenseFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/Container;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/item/ItemStack;"))
-    private ItemStack silkard$addItem(Container source, Container destination, ItemStack stack, Direction direction,
-                       ServerLevel level) {
-        CraftItemStack oitemstack = CraftItemStack.asCraftMirror(stack.copyWithCount(1));
+    private static ItemStack silkard$addItem(Container dropper, Container container, ItemStack stack, Direction direction) {
+        DispenserBlockEntity dropperEntity = (DispenserBlockEntity) dropper;
+        ServerLevel level = (ServerLevel) dropperEntity.getLevel();
+        CraftItemStack oitemstack = CraftItemStack.asCraftMirror(stack);
 
         org.bukkit.inventory.Inventory destinationInventory;
         // Have to special case large chests as they work oddly
-        if (destination instanceof CompoundContainer) {
-            destinationInventory = new CraftInventoryDoubleChest((CompoundContainer) destination);
+        if (container instanceof CompoundContainer compoundContainer) {
+            destinationInventory = new CraftInventoryDoubleChest(compoundContainer);
         } else {
-            destinationInventory = destination.getOwner().getInventory();
+            destinationInventory = container.getOwner().getInventory();
         }
 
-        InventoryMoveItemEvent event = new InventoryMoveItemEvent(source.getOwner().getInventory(), oitemstack,
-                destinationInventory, true);
+        InventoryMoveItemEvent event = new InventoryMoveItemEvent(dropperEntity.getOwner().getInventory(), oitemstack, destinationInventory, true);
         level.getCraftServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
-            // 返回非空 remainder：vanilla 走 else 分支把源格原样写回，等价于 CB 的提前 return
-            return stack.copy();
+            // Keep the dropper contents untouched
+            return stack;
         }
-        return HopperBlockEntity.addItem(source, destination, CraftItemStack.asNMSCopy(event.getItem()), direction);
+
+        ItemStack moved = HopperBlockEntity.addItem(dropper, container, CraftItemStack.asNMSCopy(event.getItem()), direction);
+        // A changed item keeps the original stack in the dropper, matching CraftBukkit
+        return event.getItem().equals(oitemstack) ? moved : stack;
     }
+    // CraftBukkit end
 }

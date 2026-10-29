@@ -26,6 +26,10 @@ public interface ContextItemStack {
         throw new ContextStateException("Not implemented");
     }
 
+    default DataComponentPatch asPatch() {
+        throw new ContextStateException("Not implemented");
+    }
+
     default void silkard$fakeShrink(int count) {
         throw new ContextStateException("Not implemented");
     }

@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -37,6 +38,11 @@ public abstract class MixinRecipeMap implements ContextRecipeMap {
     private Map<ResourceKey<Recipe<?>>, RecipeHolder<?>> byKey;
 
     // CraftBukkit start - mutable, ordered
+    @Inject(method = "<clinit>", at = @At("TAIL"))
+    private static void silkard$mutableEmpty(CallbackInfo ci) {
+        ((ContextRecipeMap) RecipeMap.EMPTY).silkard$makeMutable();
+    }
+
     @Inject(method = "create", at = @At("RETURN"))
     private static void silkard$makeMutable(HolderLookup<Recipe<?>> recipes, CallbackInfoReturnable<RecipeMap> cir) {
         ((ContextRecipeMap) cir.getReturnValue()).silkard$makeMutable();

@@ -1,6 +1,7 @@
 package com.mohistmc.silkard.mixin.vanilla.server.level;
 
 import com.mohistmc.silkard.injected.server.level.ContextServerLevel;
+import com.mohistmc.silkard.injected.world.level.saveddata.ContextWeatherData;
 import java.util.UUID;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -23,11 +24,16 @@ import net.minecraft.world.level.storage.SavedDataStorage;
 import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.level.timers.TimerQueue;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.entity.LightningStrike;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * @author Mgazul
@@ -71,6 +77,13 @@ public abstract class MixinServerLevel implements ContextServerLevel {
     public RandomSequences getRandomSequences() {
         return this.randomSequences;
     }
+
+    // CraftBukkit start
+    @Inject(method = "getWeatherData", at = @At("RETURN"))
+    private void silkard$initWeatherData(CallbackInfoReturnable<WeatherData> cir) {
+        ((ContextWeatherData) (Object) cir.getReturnValue()).silkard$init((ServerLevel) (Object) this);
+    }
+    // CraftBukkit end
 
     public void setWeatherParameters(int clearTime, int rainTime, boolean raining, boolean thundering) {
         WeatherData weatherdata = this.getWeatherData();
@@ -165,4 +178,20 @@ public abstract class MixinServerLevel implements ContextServerLevel {
         }
         return ((ServerLevel) (Object) this).addFreshEntity(entity);
     }
+
+    // CraftBukkit start
+    @Override
+    public boolean strikeLightning(Entity entity) {
+        return this.strikeLightning(entity, LightningStrikeEvent.Cause.UNKNOWN);
+    }
+
+    @Override
+    public boolean strikeLightning(Entity entity, LightningStrikeEvent.Cause cause) {
+        LightningStrikeEvent event = CraftEventFactory.callLightningStrikeEvent((LightningStrike) entity.getBukkitEntity(), cause);
+        if (event.isCancelled()) {
+            return false;
+        }
+        return ((ServerLevel) (Object) this).addFreshEntity(entity);
+    }
+    // CraftBukkit end
 }
