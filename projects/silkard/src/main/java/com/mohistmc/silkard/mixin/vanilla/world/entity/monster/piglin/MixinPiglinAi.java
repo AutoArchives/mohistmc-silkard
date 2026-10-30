@@ -174,7 +174,7 @@ public abstract class MixinPiglinAi {
                 } else {
                     throwItems(body, Collections.singletonList(itemstack1));
                 }
-                ((MixinPiglin) (Object) body).silkard$holdInMainHand(itemstack);
+                ((ContextPiglin) (Object) body).silkard$holdInMainHand(itemstack);
             }
         }
     }

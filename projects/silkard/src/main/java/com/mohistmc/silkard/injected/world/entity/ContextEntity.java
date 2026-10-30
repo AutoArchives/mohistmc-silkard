@@ -183,6 +183,10 @@ public interface ContextEntity extends ContextEntityAccess {
         throw new ContextStateException("Not implemented");
     }
 
+    default void silkard$superRemove(Entity.RemovalReason entity_removalreason, EntityRemoveEvent.Cause cause) {
+        throw new ContextStateException("Not implemented");
+    }
+
     @Override
     default void setRemoved(Entity.RemovalReason entity_removalreason, EntityRemoveEvent.Cause cause) {
         throw new ContextStateException("Not implemented");

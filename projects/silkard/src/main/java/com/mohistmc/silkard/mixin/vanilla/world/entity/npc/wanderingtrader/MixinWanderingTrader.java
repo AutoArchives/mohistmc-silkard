@@ -27,7 +27,7 @@ public class MixinWanderingTrader {
 
     // CraftBukkit start - add Bukkit remove cause
     @Redirect(method = "maybeDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/npc/wanderingtrader/WanderingTrader;discard()V"))
-    private void silkard$discard() {
+    private void silkard$discard(WanderingTrader self) {
         ((ContextEntity) (Object) this).discard(EntityRemoveEvent.Cause.DESPAWN);
     }
     // CraftBukkit end

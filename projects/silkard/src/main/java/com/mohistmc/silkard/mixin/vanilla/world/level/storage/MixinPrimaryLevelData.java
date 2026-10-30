@@ -28,6 +28,11 @@ public class MixinPrimaryLevelData implements ContextPrimaryLevelData {
     protected Tag pdc;
 
     @Override
+    public void silkard$pdc(Tag pdc) {
+        this.pdc = pdc;
+    }
+
+    @Override
     public void setWorld(ServerLevel world) {
         if (this.world != null) {
             return;

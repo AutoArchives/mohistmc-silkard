@@ -62,13 +62,13 @@ public abstract class MixinWitherBoss extends Monster {
     // CraftBukkit end
 
     // CraftBukkit start - EntityRegainHealthEvent
-    @Redirect(method = "customServerAiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;heal(F)V", ordinal = 0))
-    private void silkard$healSpawn(LivingEntity entity, float amount) {
+    @Redirect(method = "customServerAiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/boss/wither/WitherBoss;heal(F)V", ordinal = 0))
+    private void silkard$healSpawn(WitherBoss entity, float amount) {
         ((ContextLivingEntity) (Object) this).heal(amount, EntityRegainHealthEvent.RegainReason.WITHER_SPAWN);
     }
 
-    @Redirect(method = "customServerAiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;heal(F)V", ordinal = 1))
-    private void silkard$healRegen(LivingEntity entity, float amount) {
+    @Redirect(method = "customServerAiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/boss/wither/WitherBoss;heal(F)V", ordinal = 1))
+    private void silkard$healRegen(WitherBoss entity, float amount) {
         ((ContextLivingEntity) (Object) this).heal(amount, EntityRegainHealthEvent.RegainReason.REGEN);
     }
     // CraftBukkit end
@@ -84,8 +84,8 @@ public abstract class MixinWitherBoss extends Monster {
     // CraftBukkit end
 
     // CraftBukkit start - add Bukkit remove cause
-    @Redirect(method = "checkDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;discard()V"))
-    private void silkard$discard(Entity entity) {
+    @Redirect(method = "checkDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/boss/wither/WitherBoss;discard()V"))
+    private void silkard$discard(WitherBoss entity) {
         ((ContextEntity) (Object) this).discard(EntityRemoveEvent.Cause.DESPAWN);
     }
     // CraftBukkit end

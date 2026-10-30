@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinCat {
 
     // CraftBukkit start - fire EntityTameEvent
-    @Redirect(method = "tryToTame", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/TamableAnimal;tame(Lnet/minecraft/world/entity/player/Player;)V"))
-    private void silkard$tame(TamableAnimal self, Player player) {
+    @Redirect(method = "tryToTame", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/feline/Cat;tame(Lnet/minecraft/world/entity/player/Player;)V"))
+    private void silkard$tame(Cat self, Player player) {
         if (CraftEventFactory.callEntityTameEvent((Mob) (Object) this, player).isCancelled()) {
             return;
         }

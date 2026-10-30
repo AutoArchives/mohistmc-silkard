@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class MixinWolf {
 
     // CraftBukkit start - fire EntityTameEvent
-    @Redirect(method = "tryToTame", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/TamableAnimal;tame(Lnet/minecraft/world/entity/player/Player;)V"))
-    private void silkard$tame(TamableAnimal self, Player player) {
+    @Redirect(method = "tryToTame", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/wolf/Wolf;tame(Lnet/minecraft/world/entity/player/Player;)V"))
+    private void silkard$tame(Wolf self, Player player) {
         if (CraftEventFactory.callEntityTameEvent((Wolf) (Object) this, player).isCancelled()) {
             return;
         }
@@ -30,15 +30,15 @@ public class MixinWolf {
     // CraftBukkit end
 
     // CraftBukkit start - fire EntityTargetEvent with a reason
-    @Redirect(method = "mobInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
-    private void silkard$setTarget(net.minecraft.world.entity.Mob self, LivingEntity target) {
+    @Redirect(method = "mobInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/wolf/Wolf;setTarget(Lnet/minecraft/world/entity/LivingEntity;)V"))
+    private void silkard$setTarget(Wolf self, LivingEntity target) {
         ((ContextMob) (Object) this).setTarget(target, EntityTargetEvent.TargetReason.FORGOT_TARGET, true);
     }
     // CraftBukkit end
 
     // CraftBukkit start - use the scaled max health
-    @Redirect(method = "applyTamingSideEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
-    private void silkard$setHealth(LivingEntity self, float health) {
+    @Redirect(method = "applyTamingSideEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/wolf/Wolf;setHealth(F)V"))
+    private void silkard$setHealth(Wolf self, float health) {
         self.setHealth(self.getMaxHealth());
     }
     // CraftBukkit end

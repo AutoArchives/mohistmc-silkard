@@ -3,6 +3,7 @@ package com.mohistmc.silkard.mixin.vanilla.world.entity.monster.cubemob;
 import com.mohistmc.silkard.injected.world.level.ContextLevelWriter;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.entity.ConversionType;
 import net.minecraft.world.entity.Entity;
@@ -18,6 +19,7 @@ import org.bukkit.event.entity.CubeMobSplitEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 
 /**
  * Ports nms-patches/net/minecraft/world/entity/monster/Slime.patch.
@@ -27,24 +29,31 @@ import org.spongepowered.asm.mixin.Overwrite;
  * @date 2026/10/30
  */
 @Mixin(AbstractCubeMob.class)
-public abstract class MixinAbstractCubeMob extends AbstractCubeMob {
+public abstract class MixinAbstractCubeMob extends AgeableMob {
 
-    protected MixinAbstractCubeMob(EntityType<? extends AbstractCubeMob> type, Level level) {
+    protected MixinAbstractCubeMob(EntityType<? extends AgeableMob> type, Level level) {
         super(type, level);
     }
+
+    @Shadow
+    protected abstract int getSplitCount();
+
+    @Shadow
+    protected abstract void setUpSplitCube(AbstractCubeMob slime, int j, float f2, float f3);
 
     // CraftBukkit start - split events
     @Overwrite
     public void remove(Entity.RemovalReason reason) {
-        int i = this.getSize();
-        if (!this.level().isClientSide() && i > 1 && this.isDeadOrDying()) {
-            float f = this.getDimensions(this.getPose()).width() / 2.0F;
+        AbstractCubeMob self = (AbstractCubeMob) (Object) this;
+        int i = self.getSize();
+        if (!self.level().isClientSide() && i > 1 && self.isDeadOrDying()) {
+            float f = self.getDimensions(self.getPose()).width() / 2.0F;
             int j = i / 2;
             int k = this.getSplitCount();
-            PlayerTeam playerteam = this.getTeam();
+            PlayerTeam playerteam = self.getTeam();
             // CraftBukkit start
-            CubeMobSplitEvent event = new CubeMobSplitEvent((org.bukkit.entity.AbstractCubeMob) this.getBukkitEntity(), k);
-            this.level().getCraftServer().getPluginManager().callEvent(event);
+            CubeMobSplitEvent event = new CubeMobSplitEvent((org.bukkit.entity.AbstractCubeMob) self.getBukkitEntity(), k);
+            self.level().getCraftServer().getPluginManager().callEvent(event);
 
             if (!event.isCancelled() && event.getCount() > 0) {
                 k = event.getCount();
@@ -59,22 +68,20 @@ public abstract class MixinAbstractCubeMob extends AbstractCubeMob {
                 float f2 = ((float) (l % 2) - 0.5F) * f;
                 float f3 = ((float) (l / 2) - 0.5F) * f;
 
-                AbstractCubeMob converted = this.convertTo(this.getType(), new ConversionParams(ConversionType.SPLIT_ON_DEATH, false, false, playerteam), EntitySpawnReason.TRIGGERED, (slime) -> {
+                AbstractCubeMob converted = self.convertTo(self.getType(), new ConversionParams(ConversionType.SPLIT_ON_DEATH, false, false, playerteam), EntitySpawnReason.TRIGGERED, (slime) -> {
                     this.setUpSplitCube(slime, j, f2, f3);
-                    // CraftBukkit start
                 }, null, null);
                 if (converted != null) {
                     slimes.add(converted);
                 }
-                // CraftBukkit end
             }
             // CraftBukkit start
-            if (CraftEventFactory.callEntityTransformEvent(this, slimes, EntityTransformEvent.TransformReason.SPLIT).isCancelled()) {
+            if (CraftEventFactory.callEntityTransformEvent(self, slimes, EntityTransformEvent.TransformReason.SPLIT).isCancelled()) {
                 super.remove(reason);
                 return;
             }
             for (LivingEntity living : slimes) {
-                ((ContextLevelWriter) this.level()).addFreshEntity(living, CreatureSpawnEvent.SpawnReason.SLIME_SPLIT);
+                ((ContextLevelWriter) self.level()).addFreshEntity(living, CreatureSpawnEvent.SpawnReason.SLIME_SPLIT);
             }
             // CraftBukkit end
         }

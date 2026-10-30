@@ -59,7 +59,7 @@ public abstract class MixinShulkerBullet extends Projectile implements ContextSh
     }
     // CraftBukkit end
 
-    @Inject(method = "<init>", at = @At("RETURN"))
+    @Inject(method = "<init>(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/Direction$Axis;)V", at = @At("RETURN"))
     private void silkard$init(Level level, LivingEntity owner, Entity target, Direction.Axis axis, CallbackInfo ci) {
         if (owner != null) {
             ((ContextEntity) (Object) this).silkard_projectileSource((ProjectileSource) owner.getBukkitEntity());
@@ -71,7 +71,7 @@ public abstract class MixinShulkerBullet extends Projectile implements ContextSh
         return ((ContextProjectile) (Object) self).preHitTargetOrDeflectSelf(hitResult);
     }
 
-    @Redirect(method = "checkDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;discard()V"))
+    @Redirect(method = "checkDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ShulkerBullet;discard()V"))
     private void silkard$discardDespawn(ShulkerBullet self) {
         ((ContextEntity) (Object) self).discard(EntityRemoveEvent.Cause.DESPAWN);
     }

@@ -2,13 +2,20 @@ package com.mohistmc.silkard.mixin.vanilla.world.level.storage;
 
 import com.mohistmc.silkard.injected.world.level.storage.ContextLevelStorageAccess;
 import com.mohistmc.silkard.injected.world.level.storage.ContextLevelStorageSource;
+import com.mohistmc.silkard.injected.world.level.storage.ContextPrimaryLevelData;
+import com.mojang.serialization.Dynamic;
 import java.io.IOException;
 import java.nio.file.Path;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
+import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.ContentValidationException;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * @author Mgazul
@@ -31,7 +38,7 @@ public class MixinLevelStorageSource implements ContextLevelStorageSource {
         return access;
     }
 
-    public static Path getPre261StorageFolder(Path path, ResourceKey<LevelStem> dimensionType) {
+    private static Path getPre261StorageFolder(Path path, ResourceKey<LevelStem> dimensionType) {
         if (dimensionType == LevelStem.OVERWORLD) {
             return path;
         } else if (dimensionType == LevelStem.NETHER) {
@@ -41,6 +48,13 @@ public class MixinLevelStorageSource implements ContextLevelStorageSource {
         } else {
             return path.resolve("dimensions").resolve(dimensionType.identifier().getNamespace()).resolve(dimensionType.identifier().getPath());
         }
+    }
+    // CraftBukkit start - add BukkitValues PDC to the loaded world data
+    @Redirect(method = "getLevelDataAndDimensions", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/PrimaryLevelData;parse(Lcom/mojang/serialization/Dynamic;Lnet/minecraft/world/level/LevelSettings;Lnet/minecraft/world/level/storage/PrimaryLevelData$SpecialWorldProperty;Lcom/mojang/serialization/Lifecycle;)Lnet/minecraft/world/level/storage/PrimaryLevelData;"))
+    private static PrimaryLevelData silkard$bukkitValues(Dynamic<?> dynamic, LevelSettings settings, PrimaryLevelData.SpecialWorldProperty specialWorldProperty, com.mojang.serialization.Lifecycle lifecycle) {
+        PrimaryLevelData data = PrimaryLevelData.parse(dynamic, settings, specialWorldProperty, lifecycle);
+        ((ContextPrimaryLevelData) data).silkard$pdc(((Dynamic<Tag>) dynamic).getElement("BukkitValues", null));
+        return data;
     }
     // CraftBukkit end
 }

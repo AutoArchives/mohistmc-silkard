@@ -8,6 +8,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -37,6 +38,7 @@ public class MixinDolphin {
     // CraftBukkit end
 
     // CraftBukkit start - SPIGOT-6907: re-implement LivingEntity#setMaximumAir()
+    @Overwrite
     public int getMaxAirSupply() {
         return ((ContextEntity) (Object) this).silkard_maxAirTicks();
     }

@@ -14,7 +14,6 @@ import org.bukkit.craftbukkit.block.CraftSign;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.event.block.SignChangeEvent;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,15 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @date 2026/10/30
  */
 @Mixin(SignBlockEntity.class)
-public class MixinSignBlockEntity {
+public abstract class MixinSignBlockEntity {
 
     @Unique
     private Player silkard$editor;
-
-    @Shadow
-    private static SignText updateMessages(List<FilteredText> lines, SignText text, boolean front) {
-        throw new AssertionError();
-    }
 
     // CraftBukkit start - SignChangeEvent
     @Inject(method = "updateSignText", at = @At("HEAD"))
@@ -42,14 +36,14 @@ public class MixinSignBlockEntity {
         this.silkard$editor = player;
     }
 
-    @Redirect(method = "updateSignText", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/SignBlockEntity;updateMessages(Ljava/util/List;Lnet/minecraft/world/level/block/entity/SignText;Z)Lnet/minecraft/world/level/block/entity/SignText;"))
-    private SignText silkard$signChange(List<FilteredText> lines, SignText text, boolean front) {
-        SignText originalText = text;
-        SignText updated = updateMessages(lines, text, front);
+    @Redirect(method = "updateSignText", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/SignBlockEntity;updateText(Ljava/util/function/UnaryOperator;Lnet/minecraft/world/level/block/entity/SignTextSlot;)Z"))
+    private boolean silkard$signChange(SignBlockEntity self, java.util.function.UnaryOperator<SignText> operator, SignTextSlot slot) {
+        SignText originalText = self.getText(slot);
+        SignText updated = operator.apply(originalText);
         Player player = this.silkard$editor;
 
-        if (player == null || this.getLevel() == null) {
-            return updated;
+        if (player == null || self.getLevel() == null) {
+            return originalText != updated;
         }
 
         String[] linesArray = new String[4];
@@ -58,11 +52,11 @@ public class MixinSignBlockEntity {
             linesArray[i] = CraftChatMessage.fromComponent(messages.get(i));
         }
 
-        SignChangeEvent event = new SignChangeEvent(CraftBlock.at(this.getLevel(), this.getBlockPos()), player.getBukkitEntity(), linesArray.clone(), front ? Side.FRONT : Side.BACK);
-        this.getLevel().getCraftServer().getPluginManager().callEvent(event);
+        SignChangeEvent event = new SignChangeEvent(CraftBlock.at(self.getLevel(), self.getBlockPos()), (org.bukkit.entity.Player) player.getBukkitEntity(), linesArray.clone(), slot == SignTextSlot.FRONT ? Side.FRONT : Side.BACK);
+        self.getLevel().getCraftServer().getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
-            return originalText;
+            return false;
         }
 
         Component[] components = CraftSign.sanitizeLines(event.getLines());
@@ -72,7 +66,8 @@ public class MixinSignBlockEntity {
                 mutable.setLine(i, components[i]);
             }
         }
-        return mutable.asImmutable();
+        self.setText(mutable.asImmutable(), slot);
+        return true;
     }
     // CraftBukkit end
 }

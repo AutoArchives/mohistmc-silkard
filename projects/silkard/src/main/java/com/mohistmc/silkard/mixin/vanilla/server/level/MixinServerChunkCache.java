@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * @date 2026/10/30
  */
 @Mixin(ServerChunkCache.class)
-public class MixinServerChunkCache implements ContextServerChunkCache {
+public abstract class MixinServerChunkCache implements ContextServerChunkCache {
 
     // CraftBukkit start - properly implement isChunkLoaded
     @org.spongepowered.asm.mixin.Shadow
@@ -45,6 +45,13 @@ public class MixinServerChunkCache implements ContextServerChunkCache {
     @Shadow
     @Final
     private net.minecraft.world.level.storage.SavedDataStorage savedDataStorage;
+
+    @Shadow
+    @Final
+    private net.minecraft.world.level.TicketStorage ticketStorage;
+
+    @Shadow
+    public abstract void save(boolean save);
 
     @Shadow
     private void clearCache() {
@@ -99,7 +106,7 @@ public class MixinServerChunkCache implements ContextServerChunkCache {
     // CraftBukkit end
 
     // CraftBukkit start - per-world spawn limits
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/NaturalSpawner;getFilteredSpawningCategories(Lnet/minecraft/world/level/NaturalSpawner$SpawnState;ZZ)Ljava/util/List;"))
+    @Redirect(method = "tickChunks(Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/NaturalSpawner;getFilteredSpawningCategories(Lnet/minecraft/world/level/NaturalSpawner$SpawnState;ZZ)Ljava/util/List;"))
     private List<MobCategory> silkard$filteredSpawningCategories(NaturalSpawner.SpawnState state, boolean spawnEnemies, boolean spawnPersistent) {
         ServerLevel serverlevel = this.level;
         LevelData leveldata = serverlevel.getLevelData();

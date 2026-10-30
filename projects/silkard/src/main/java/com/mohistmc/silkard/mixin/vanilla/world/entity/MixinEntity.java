@@ -66,6 +66,11 @@ public abstract class MixinEntity implements ContextEntity {
     // CraftBukkit start - EntityRemoveEvent
     @Override
     public void remove(Entity.RemovalReason removalReason, EntityRemoveEvent.Cause cause) {
+        ((ContextEntity) (Object) this).silkard$superRemove(removalReason, cause);
+    }
+
+    @Override
+    public void silkard$superRemove(Entity.RemovalReason removalReason, EntityRemoveEvent.Cause cause) {
         CraftEventFactory.callEntityRemoveEvent((Entity) (Object) this, cause);
         ((Entity) (Object) this).remove(removalReason);
     }

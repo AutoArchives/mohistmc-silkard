@@ -1,5 +1,6 @@
 package com.mohistmc.silkard.mixin.vanilla.world.entity.monster;
 
+import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.monster.Enderman;
@@ -12,52 +13,36 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * @author Mgazul
  * @date 2026/10/30
  */
 @Mixin(targets = "net.minecraft.world.entity.monster.Enderman$EndermanLeaveBlockGoal")
-public abstract class MixinEnderman$EndermanLeaveBlockGoal {
+public class MixinEnderman$EndermanLeaveBlockGoal {
 
-    @Shadow @Final
+    @Shadow
+    @Final
     private Enderman enderman;
 
     @Unique
-    private boolean silkard$placeCancelled;
+    private boolean silkard$allowed;
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void silkard$reset(CallbackInfo ci) {
-        this.silkard$placeCancelled = false;
+    // CraftBukkit start - place event
+    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
+    private boolean silkard$placeBlock(Level level, BlockPos pos, BlockState state) {
+        this.silkard$allowed = CraftEventFactory.callEntityChangeBlockEvent(this.enderman, pos, state);
+        return this.silkard$allowed;
     }
 
-    // CraftBukkit start - EntityChangeBlockEvent
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
-    private boolean silkard$setBlock(Level level, BlockPos pos, BlockState state) {
-        if (!CraftEventFactory.callEntityChangeBlockEvent(this.enderman, pos, state)) {
-            this.silkard$placeCancelled = true;
-            return false;
-        }
-        return level.setBlockAndUpdate(pos, state);
+    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;gameEvent(Lnet/minecraft/core/Holder;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/gameevent/GameEvent$Context;)V"))
+    private boolean silkard$gameEvent(Level level, Holder<GameEvent> gameEvent, BlockPos pos, GameEvent.Context context) {
+        return this.silkard$allowed;
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;gameEvent(Lnet/minecraft/core/Holder;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/gameevent/GameEvent$Context;)V"))
-    private void silkard$gameEvent(Level level, Holder gameEvent, BlockPos pos, GameEvent.Context context) {
-        if (this.silkard$placeCancelled) {
-            return;
-        }
-        level.gameEvent(gameEvent, pos, context);
-    }
-
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/Enderman;setCarriedBlock(Lnet/minecraft/world/level/block/state/BlockState;)V"))
-    private void silkard$setCarriedBlock(Enderman enderman, BlockState state) {
-        if (this.silkard$placeCancelled) {
-            return;
-        }
-        enderman.setCarriedBlock(state);
+    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/Enderman;setCarriedBlock(Lnet/minecraft/world/level/block/state/BlockState;)V"))
+    private boolean silkard$clearCarried(Enderman instance, BlockState state) {
+        return this.silkard$allowed;
     }
     // CraftBukkit end
 }

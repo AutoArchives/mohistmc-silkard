@@ -36,7 +36,7 @@ public class MixinEndCrystal {
     }
 
     // CraftBukkit - all non-living entities need a damage event
-    @Inject(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V", shift = At.Shift.BEFORE), cancellable = true)
+    @Inject(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/boss/enderdragon/EndCrystal;remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V", shift = At.Shift.BEFORE), cancellable = true)
     private void silkard$damage(ServerLevel level, DamageSource source, float damage, CallbackInfoReturnable<Boolean> cir) {
         if (CraftEventFactory.handleNonLivingEntityDamageEvent((Entity) (Object) this, source, damage, false)) {
             cir.setReturnValue(false);
@@ -44,8 +44,8 @@ public class MixinEndCrystal {
     }
 
     // CraftBukkit - add Bukkit remove cause
-    @Redirect(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V"))
-    private void silkard$remove(Entity instance, Entity.RemovalReason reason, @Local(argsOnly = true) DamageSource source) {
+    @Redirect(method = "hurtServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/boss/enderdragon/EndCrystal;remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V"))
+    private void silkard$remove(EndCrystal instance, Entity.RemovalReason reason, @Local(argsOnly = true) DamageSource source) {
         instance.remove(reason, source.is(DamageTypeTags.IS_EXPLOSION) ? EntityRemoveEvent.Cause.DEATH : EntityRemoveEvent.Cause.EXPLODE);
     }
 

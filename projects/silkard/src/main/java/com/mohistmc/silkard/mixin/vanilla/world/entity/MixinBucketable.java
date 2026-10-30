@@ -1,15 +1,18 @@
 package com.mohistmc.silkard.mixin.vanilla.world.entity;
 
 import com.mohistmc.silkard.injected.world.entity.ContextEntity;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.event.entity.EntityRemoveEvent;
@@ -31,7 +34,7 @@ public interface MixinBucketable {
     static <T extends LivingEntity & net.minecraft.world.entity.Bucketable> Optional<InteractionResult> bucketMobPickup(Player player, InteractionHand hand, T pickupEntity) {
         ItemStack itemstack = player.getItemInHand(hand);
 
-        if (itemstack.getItem() == Items.WATER_BUCKET && pickupEntity.isAlive()) {
+        if (pickupEntity.canBePickedUpWithBucket(itemstack) && pickupEntity.isAlive()) {
             ItemStack itemstack1 = pickupEntity.getBucketItemStack();
 
             pickupEntity.saveToBucketTag(itemstack1);
@@ -48,6 +51,13 @@ public interface MixinBucketable {
             ItemStack itemstack2 = ItemUtils.createFilledResult(itemstack, player, itemstack1, false);
 
             player.setItemInHand(hand, itemstack2);
+            Level level = pickupEntity.level();
+            if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
+                CriteriaTriggers.FILLED_BUCKET.trigger(serverPlayer, itemstack1);
+            }
+            if (pickupEntity instanceof Leashable leashable) {
+                leashable.dropLeash();
+            }
             ((ContextEntity) (Object) pickupEntity).discard(EntityRemoveEvent.Cause.PICKUP);
             return Optional.of(InteractionResult.SUCCESS);
         } else {

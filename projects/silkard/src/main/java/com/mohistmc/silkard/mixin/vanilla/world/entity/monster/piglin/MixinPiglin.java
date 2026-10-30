@@ -38,6 +38,7 @@ public class MixinPiglin implements ContextPiglin {
         throw new AssertionError();
     }
 
+    @Override
     public void silkard$holdInMainHand(ItemStack stack) {
         this.holdInMainHand(stack);
     }
@@ -71,20 +72,20 @@ public class MixinPiglin implements ContextPiglin {
     // CraftBukkit end
 
     // CraftBukkit start - accept custom payment items
-    @Redirect(method = "holdInOffHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
-    private boolean silkard$isBarteringItem(ItemStack stack, Item item) {
+    @Redirect(method = "holdInOffHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z"))
+    private boolean silkard$isBarteringItem(ItemStack stack, Object item) {
         if (item == PiglinAi.BARTERING_ITEM) {
-            return stack.is(item) || this.allowedBarterItems.contains(stack.getItem());
+            return stack.is((Item) item) || this.allowedBarterItems.contains(stack.getItem());
         }
-        return stack.is(item);
+        return stack.is((Item) item);
     }
 
-    @Redirect(method = "canReplaceCurrentItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/piglin/PiglinAi;isLovedItem(Lnet/minecraft/world/item/ItemStack;)Z", ordinal = 0))
+    @Redirect(method = "canReplaceCurrentItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/piglin/PiglinAi;isLovedItem(Lnet/minecraft/world/item/ItemStack;)Z", ordinal = 0))
     private boolean silkard$isLovedItemNew(ItemStack itemStack) {
         return itemStack.is(ItemTags.PIGLIN_LOVED) || this.interestItems.contains(itemStack.getItem()) || this.allowedBarterItems.contains(itemStack.getItem());
     }
 
-    @Redirect(method = "canReplaceCurrentItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/piglin/PiglinAi;isLovedItem(Lnet/minecraft/world/item/ItemStack;)Z", ordinal = 1))
+    @Redirect(method = "canReplaceCurrentItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/monster/piglin/PiglinAi;isLovedItem(Lnet/minecraft/world/item/ItemStack;)Z", ordinal = 1))
     private boolean silkard$isLovedItemCurrent(ItemStack itemStack) {
         return itemStack.is(ItemTags.PIGLIN_LOVED) || this.interestItems.contains(itemStack.getItem()) || this.allowedBarterItems.contains(itemStack.getItem());
     }

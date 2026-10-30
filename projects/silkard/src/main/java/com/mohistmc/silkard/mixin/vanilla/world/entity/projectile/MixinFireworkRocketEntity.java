@@ -36,7 +36,7 @@ public abstract class MixinFireworkRocketEntity {
         }
     }
 
-    @Redirect(method = "explode", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;discard()V"))
+    @Redirect(method = "explode", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/FireworkRocketEntity;discard()V"))
     private void silkard$discard(FireworkRocketEntity self) {
         ((ContextEntity) (Object) self).discard(EntityRemoveEvent.Cause.EXPLODE);
     }

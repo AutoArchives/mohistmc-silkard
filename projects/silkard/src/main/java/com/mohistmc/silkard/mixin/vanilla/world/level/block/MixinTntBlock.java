@@ -28,12 +28,12 @@ public class MixinTntBlock {
 
     // CraftBukkit start - TNTPrimeEvent
     @Redirect(method = {"onPlace", "neighborChanged"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/TntBlock;prime(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Z"))
-    private boolean silkard$primeRedstone(Level level, BlockPos pos) {
+    private static boolean silkard$primeRedstone(Level level, BlockPos pos) {
         return CraftEventFactory.callTNTPrimeEvent(level, pos, PrimeCause.REDSTONE, null, null) && TntBlock.prime(level, pos);
     }
 
     @Redirect(method = "playerWillDestroy", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/TntBlock;prime(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Z"))
-    private boolean silkard$primeBlockBreak(Level level, BlockPos pos, Level levelArg, BlockPos posArg, BlockState state, Player player) {
+    private static boolean silkard$primeBlockBreak(Level level, BlockPos pos, Level levelArg, BlockPos posArg, BlockState state, Player player) {
         return CraftEventFactory.callTNTPrimeEvent(level, pos, PrimeCause.BLOCK_BREAK, player, null) && TntBlock.prime(level, pos);
     }
 

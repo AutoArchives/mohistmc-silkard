@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -46,20 +45,25 @@ public class MixinCopperGolem {
     // CraftBukkit end
 
     // CraftBukkit start - preserved equipment always drops
-    @Inject(method = "dropPreservedEquipment", at = @At("HEAD"))
-    private void silkard$forceDropsOn(ServerLevel level, CallbackInfo ci) {
-        ((ContextLivingEntity) (Object) this).silkard$forceDrops(true);
+    @Redirect(method = "turnToStatue", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/golem/CopperGolem;dropPreservedEquipment(Lnet/minecraft/server/level/ServerLevel;)V"))
+    private void silkard$forceDropsOnStatue(CopperGolem self, ServerLevel level) {
+        ((ContextLivingEntity) (Object) self).silkard$forceDrops(true);
+        self.dropPreservedEquipment(level);
+        ((ContextLivingEntity) (Object) self).silkard$forceDrops(false);
     }
 
-    @Inject(method = "dropPreservedEquipment", at = @At("RETURN"))
-    private void silkard$forceDropsOff(ServerLevel level, CallbackInfo ci) {
-        ((ContextLivingEntity) (Object) this).silkard$forceDrops(false);
+    @Redirect(method = "shear", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/golem/CopperGolem;spawnAtLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;F)Lnet/minecraft/world/entity/item/ItemEntity;"))
+    private net.minecraft.world.entity.item.ItemEntity silkard$forceDropsOnShear(CopperGolem self, ServerLevel level, ItemStack stack, float offset) {
+        ((ContextLivingEntity) (Object) self).silkard$forceDrops(true);
+        net.minecraft.world.entity.item.ItemEntity dropped = self.spawnAtLocation(level, stack, offset);
+        ((ContextLivingEntity) (Object) self).silkard$forceDrops(false);
+        return dropped;
     }
     // CraftBukkit end
 
     // CraftBukkit start - add Bukkit remove cause
-    @Redirect(method = "turnToStatue", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;discard()V"))
-    private void silkard$discard(Entity self) {
+    @Redirect(method = "turnToStatue", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/golem/CopperGolem;discard()V"))
+    private void silkard$discard(CopperGolem self) {
         ((ContextEntity) (Object) this).discard(EntityRemoveEvent.Cause.DESPAWN);
     }
     // CraftBukkit end

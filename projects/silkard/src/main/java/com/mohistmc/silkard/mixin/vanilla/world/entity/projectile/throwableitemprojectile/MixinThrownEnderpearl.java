@@ -45,8 +45,8 @@ public abstract class MixinThrownEnderpearl extends ThrowableItemProjectile {
 
     // CraftBukkit start - teleport the owner before the endermite spawn, with a Bukkit teleport cause
     @Inject(method = "onHit", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextFloat()F", shift = At.Shift.BEFORE), cancellable = true)
-    private void silkard$teleportOwner(@Local(name = "level") ServerLevel level, @Local(name = "teleportPos") Vec3 teleportPos,
-                                       @Local(name = "player") ServerPlayer player, CallbackInfo ci) {
+    private void silkard$teleportOwner(CallbackInfo ci, @Local(name = "level") ServerLevel level, @Local(name = "teleportPos") Vec3 teleportPos,
+                                       @Local(name = "player") ServerPlayer player) {
         TeleportTransition transition = new TeleportTransition(level, teleportPos, Vec3.ZERO, 0.0F, 0.0F, Relative.ROTATION, TeleportTransition.DO_NOTHING);
         ((ContextTeleportTransition) (Object) transition).silkard$cause(PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
         this.silkard$teleportResult = player.teleport(transition);

@@ -143,7 +143,7 @@ public abstract class MixinServerPlayer extends Player implements ContextServerP
         ServerLevel newLevel = transition.newLevel();
         PositionMoveRotation absolutePosition = PositionMoveRotation.calculateAbsolute(PositionMoveRotation.of((ServerPlayer) (Object) this), PositionMoveRotation.of(transition), transition.relatives());
         Location enter = this.getBukkitEntity().getLocation();
-        Location exit = CraftLocation.toBukkit(absolutePosition.position(), ((com.mohistmc.silkard.injected.world.level.ContextLevel) newLevel).getWorld(), absolutePosition.yRot(), absolutePosition.xRot());
+        Location exit = newLevel == null ? null : CraftLocation.toBukkit(absolutePosition.position(), ((com.mohistmc.silkard.injected.world.level.ContextLevel) newLevel).getWorld(), absolutePosition.yRot(), absolutePosition.xRot());
         PlayerTeleportEvent tpEvent = new PlayerTeleportEvent(this.getBukkitEntity(), enter, exit, ((ContextTeleportTransition) (Object) transition).silkard$cause());
         Bukkit.getServer().getPluginManager().callEvent(tpEvent);
 
